@@ -36,6 +36,8 @@ model User {
   payments      Payment[]
   learningPosts LearningPost[]
   subjects      Subject[] // Guru yang mengajar mata pelajaran
+  schedules     TeacherSchedule[]
+  attendanceLogs TeacherAttendanceLog[]
 
   @@map("users")
 }
@@ -87,6 +89,49 @@ model Absence {
   @@map("absences")
 }
 
+// Teacher Schedule System - Checklist Hari
+model TeacherSchedule {
+  id          String   @id @default(cuid())
+  teacherId   String
+  dayOfWeek   Int      // 1=Senin, 2=Selasa, ..., 7=Minggu
+  subjectId   String?  // Mata pelajaran yang diajar
+  room        String?  // Ruangan kelas
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  teacher User     @relation(fields: [teacherId], references: [id])
+  subject Subject? @relation(fields: [subjectId], references: [id])
+  attendanceLogs TeacherAttendanceLog[]
+
+  @@unique([teacherId, dayOfWeek])
+  @@map("teacher_schedules")
+}
+
+// Teacher Attendance Log - untuk mencatat kehadiran aktual
+model TeacherAttendanceLog {
+  id              String           @id @default(cuid())
+  teacherId       String
+  scheduleId      String?          // Reference to TeacherSchedule
+  date            DateTime         @default(now())
+  checkInTime     DateTime?        // Waktu check in aktual
+  checkOutTime    DateTime?       // Waktu check out aktual
+  status          AbsenceStatus    @default(HADIR)
+  notes           String?          // Catatan tambahan
+  isScheduled     Boolean          @default(false) // Apakah sesuai jadwal
+  overtimeHours   Float?           // Jam lembur (jika ada)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  teacher  User             @relation(fields: [teacherId], references: [id])
+  schedule TeacherSchedule? @relation(fields: [scheduleId], references: [id])
+
+  @@unique([teacherId, date])
+  @@map("teacher_attendance_logs")
+}
+
 enum AbsenceStatus {
   HADIR
   SAKIT
@@ -104,10 +149,12 @@ model Subject {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  teacher User          @relation(fields: [teacherId], references: [id])
+  teacher User              @relation(fields: [teacherId], references: [id])
   grades  Grade[]
   posts   LearningPost[]
+  schedules TeacherSchedule[]
 
+  @@unique([teacherId, name])
   @@map("subjects")
 }
 

@@ -34,6 +34,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -104,7 +105,9 @@ export default function Home() {
                 </a>
               ))}
               <Button variant="outline" size="sm" className="border-2 border-primary/20 hover:border-primary hover:bg-primary/5 transition-all duration-300">
-                Login
+                <Link href="/auth/login" className="w-full h-full flex items-center justify-center">
+                  Masuk
+                </Link>
               </Button>
               <Button size="sm" className="bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
                 Daftar Sekarang
