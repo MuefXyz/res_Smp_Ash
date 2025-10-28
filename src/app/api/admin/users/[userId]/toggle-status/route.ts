@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { db } from '@/lib/db';
 
-export async function PATCH(
+export async function GET(
   request: NextRequest,
   { params }: { params: { userId: string } }
 ) {
-  console.log('=== TOGGLE STATUS PATCH REQUEST ===');
+  console.log('=== TOGGLE STATUS GET REQUEST ===');
   console.log('User ID:', params.userId);
   
   try {
@@ -80,11 +80,18 @@ export async function PATCH(
   }
 }
 
-// Also support POST method as fallback
 export async function POST(
   request: NextRequest,
   { params }: { params: { userId: string } }
 ) {
-  console.log('=== TOGGLE STATUS POST REQUEST (FALLBACK) ===');
-  return PATCH(request, { params });
+  console.log('=== TOGGLE STATUS POST REQUEST ===');
+  return GET(request, { params });
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  console.log('=== TOGGLE STATUS PATCH REQUEST ===');
+  return GET(request, { params });
 }

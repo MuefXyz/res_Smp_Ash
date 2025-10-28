@@ -194,31 +194,18 @@ export default function UserManagement() {
         return;
       }
 
-      console.log('Token found, making request...');
+      console.log('Token found, making GET request...');
       
-      // Try PATCH first, then fallback to POST
-      let response = await fetch(`/api/admin/users/${userId}/toggle-status`, {
-        method: 'PATCH',
+      // Use GET method for toggle status
+      const response = await fetch(`/api/admin/users/${userId}/toggle-status`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
-      console.log('PATCH Response status:', response.status);
-      console.log('PATCH Response ok:', response.ok);
-
-      // If PATCH fails, try POST as fallback
-      if (!response.ok && response.status === 405) {
-        console.log('PATCH not allowed, trying POST...');
-        response = await fetch(`/api/admin/users/${userId}/toggle-status`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        console.log('POST Response status:', response.status);
-        console.log('POST Response ok:', response.ok);
-      }
+      console.log('GET Response status:', response.status);
+      console.log('GET Response ok:', response.ok);
 
       if (response.ok) {
         const result = await response.json();
