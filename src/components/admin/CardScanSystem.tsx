@@ -103,7 +103,7 @@ export default function CardScanSystem() {
   // Filter states
   const [filters, setFilters] = useState({
     userId: '',
-    scanType: '',
+    scanType: 'ALL',
     dateFrom: '',
     dateTo: ''
   });
@@ -191,11 +191,17 @@ export default function CardScanSystem() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
+      // Convert filters to API parameters, changing "ALL" to empty string for scanType
+      const apiFilters = { ...filters };
+      if (apiFilters.scanType === 'ALL') {
+        apiFilters.scanType = '';
+      }
+
       const params = new URLSearchParams({
         page: pagination.page.toString(),
         limit: pagination.limit.toString(),
         ...Object.fromEntries(
-          Object.entries(filters).filter(([_, value]) => value !== '')
+          Object.entries(apiFilters).filter(([_, value]) => value !== '')
         )
       });
 
@@ -505,7 +511,7 @@ export default function CardScanSystem() {
                   <SelectValue placeholder="Semua" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Semua</SelectItem>
+                  <SelectItem value="ALL">Semua</SelectItem>
                   <SelectItem value="CHECK_IN">Check In</SelectItem>
                   <SelectItem value="CHECK_OUT">Check Out</SelectItem>
                 </SelectContent>
