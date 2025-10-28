@@ -197,7 +197,7 @@ export default function AdminDashboard() {
       }
 
       const response = await fetch(`/api/admin/notifications/${notificationId}/read`, {
-        method: 'PATCH',
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
         },

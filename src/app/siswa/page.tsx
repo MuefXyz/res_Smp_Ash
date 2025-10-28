@@ -179,7 +179,7 @@ export default function SiswaDashboard() {
   const handleMarkNotificationRead = async (notificationId: string) => {
     try {
       const response = await fetch(`/api/siswa/notifications/${notificationId}/read`, {
-        method: 'PATCH',
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
