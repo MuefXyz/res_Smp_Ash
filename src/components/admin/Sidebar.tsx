@@ -23,10 +23,19 @@ interface SidebarProps {
   user: any;
   stats: any;
   onLogout: () => void;
+  onCollapseChange?: (collapsed: boolean) => void;
 }
 
-export default function Sidebar({ activeTab, onTabChange, user, stats, onLogout }: SidebarProps) {
+export default function Sidebar({ activeTab, onTabChange, user, stats, onLogout, onCollapseChange }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const handleCollapseToggle = () => {
+    const newCollapsedState = !isCollapsed;
+    setIsCollapsed(newCollapsedState);
+    if (onCollapseChange) {
+      onCollapseChange(newCollapsedState);
+    }
+  };
 
   const menuItems = [
     {
@@ -69,7 +78,7 @@ export default function Sidebar({ activeTab, onTabChange, user, stats, onLogout 
   ];
 
   return (
-    <div className={`bg-white border-r border-gray-200 h-screen flex flex-col transition-all duration-300 ${
+    <div className={`bg-white border-r border-gray-200 h-screen flex flex-col transition-all duration-300 fixed left-0 top-0 z-20 ${
       isCollapsed ? 'w-20' : 'w-64'
     }`}>
       {/* Header */}
@@ -87,7 +96,7 @@ export default function Sidebar({ activeTab, onTabChange, user, stats, onLogout 
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsCollapsed(!isCollapsed)}
+            onClick={handleCollapseToggle}
             className="p-1 h-8 w-8"
           >
             {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}

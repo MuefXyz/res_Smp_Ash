@@ -99,6 +99,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [activeTab, setActiveTab] = useState('users');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalSiswa: 0,
@@ -110,6 +111,20 @@ export default function AdminDashboard() {
   });
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    // Update main content margin based on sidebar state
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+      if (sidebarCollapsed) {
+        mainContent.classList.remove('ml-64');
+        mainContent.classList.add('ml-20');
+      } else {
+        mainContent.classList.remove('ml-20');
+        mainContent.classList.add('ml-64');
+      }
+    }
+  }, [sidebarCollapsed]);
 
   useEffect(() => {
     // Check authentication
@@ -282,10 +297,11 @@ export default function AdminDashboard() {
         user={user}
         stats={stats}
         onLogout={handleLogout}
+        onCollapseChange={setSidebarCollapsed}
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col ml-64 transition-all duration-300" id="main-content">
         {/* Top Header */}
         <header className="bg-white shadow-sm border-b sticky top-0 z-10">
           <div className="px-6 py-4">
