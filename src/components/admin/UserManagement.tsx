@@ -304,18 +304,18 @@ export default function UserManagement() {
         // Process imported data
         const importedUsers = jsonData.map((row: any) => {
           const user = {
-            name: row['Nama'] || '',
-            email: row['Email'] || '',
+            name: String(row['Nama'] || '').trim(),
+            email: String(row['Email'] || '').trim().toLowerCase(),
             password: 'password123', // Default password for imported users
-            role: row['Role'] || 'SISWA',
-            nis: row['NIS'] || '',
-            nip: row['NIP'] || '',
-            phone: row['Telepon'] || '',
-            address: row['Alamat'] || ''
+            role: String(row['Role'] || 'SISWA').trim().toUpperCase(),
+            nis: String(row['NIS'] || '').trim(), // Convert to string
+            nip: String(row['NIP'] || '').trim(), // Convert to string
+            phone: String(row['Telepon'] || '').trim(), // Convert to string
+            address: String(row['Alamat'] || '').trim()
           };
           console.log('Processed user:', user);
           return user;
-        }).filter(user => user.name && user.email); // Filter empty rows
+        }).filter(user => user.name && user.email && user.email.includes('@')); // Filter valid rows
 
         console.log('Final imported users:', importedUsers);
 

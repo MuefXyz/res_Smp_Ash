@@ -52,6 +52,16 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(userData.email)) {
+          const errorMsg = `Email tidak valid untuk ${userData.name}: ${userData.email}`;
+          errors.push(errorMsg);
+          console.error('Invalid email:', errorMsg);
+          failed++;
+          continue;
+        }
+
         // Check if user already exists
         const existingUser = await db.user.findUnique({
           where: { email: userData.email }
@@ -66,9 +76,9 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if NIS already exists (if provided)
-        if (userData.nis) {
+        if (userData.nis && userData.nis.trim()) {
           const existingNis = await db.user.findUnique({
-            where: { nis: userData.nis }
+            where: { nis: userData.nis.trim() }
           });
 
           if (existingNis) {
@@ -81,9 +91,9 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if NIP already exists (if provided)
-        if (userData.nip) {
+        if (userData.nip && userData.nip.trim()) {
           const existingNip = await db.user.findUnique({
-            where: { nip: userData.nip }
+            where: { nip: userData.nip.trim() }
           });
 
           if (existingNip) {

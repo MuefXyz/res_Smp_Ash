@@ -6,19 +6,27 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { userId: string } }
 ) {
+  console.log('=== TOGGLE STATUS PATCH REQUEST ===');
+  console.log('User ID:', params.userId);
+  
   try {
     // Verify authentication
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    console.log('Token:', token ? 'Present' : 'Missing');
+    
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const user = verifyToken(token);
+    console.log('Decoded user:', user);
+    
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { userId } = params;
+    console.log('Target user ID:', userId);
 
     // Find the user
     const targetUser = await db.user.findUnique({
@@ -26,8 +34,11 @@ export async function PATCH(
     });
 
     if (!targetUser) {
+      console.log('User not found:', userId);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    console.log('Target user found:', targetUser.name, 'Current status:', targetUser.isActive);
 
     // Don't allow deactivating self
     if (targetUser.id === user.id) {
@@ -49,6 +60,8 @@ export async function PATCH(
       },
     });
 
+    console.log('User status updated:', updatedUser);
+
     // Create notification
     await db.notification.create({
       data: {
@@ -59,9 +72,19 @@ export async function PATCH(
       },
     });
 
+    console.log('=== TOGGLE STATUS SUCCESS ===');
     return NextResponse.json(updatedUser);
   } catch (error) {
     console.error('Error toggling user status:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+// Also support POST method as fallback
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  console.log('=== TOGGLE STATUS POST REQUEST (FALLBACK) ===');
+  return PATCH(request, { params });
 }
