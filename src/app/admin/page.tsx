@@ -275,7 +275,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-hidden">
+    <div className="h-screen bg-gray-50 overflow-hidden">
       {/* Fixed Sidebar */}
       <Sidebar 
         activeTab={activeTab}
@@ -287,11 +287,12 @@ export default function AdminDashboard() {
       />
 
       {/* Main Content Area */}
-      <div className={`flex flex-col min-h-screen transition-all duration-300 ${
+      <div className={`h-screen transition-all duration-300 overflow-hidden ${
         sidebarCollapsed ? 'ml-20' : 'ml-64'
       }`} id="main-content">
-        {/* Top Header */}
-        <header className="bg-white shadow-sm border-b sticky top-0 z-10">
+        {/* Top Header - Fixed */}
+        <header className="bg-white shadow-sm border-b fixed top-0 right-0 left-0 z-20" 
+                style={{left: sidebarCollapsed ? '5rem' : '16rem'}}>
           <div className="px-6 py-4">
             <div className="flex justify-between items-center">
               <div>
@@ -331,7 +332,7 @@ export default function AdminDashboard() {
         </header>
 
         {/* Scrollable Main Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="h-full overflow-y-auto pt-20">
           <div className="p-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
