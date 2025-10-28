@@ -67,6 +67,7 @@ export default function CardManagement() {
       if (response.ok) {
         const data = await response.json();
         console.log('Fetched users:', data); // Debug log
+        console.log('User Bambang Sutrisno status:', data.find((u: User) => u.name === 'Bambang Sutrisno'));
         setUsers(data);
       } else if (response.status === 401) {
         toast.error('Sesi habis, silakan login kembali');
@@ -127,7 +128,9 @@ export default function CardManagement() {
         
         // Add a small delay to ensure database is updated
         setTimeout(async () => {
+          console.log('Refreshing users after card assignment...');
           await fetchUsers();
+          console.log('Users refreshed successfully');
         }, 500);
       } else if (response.status === 401) {
         toast.error('Sesi habis, silakan login kembali');

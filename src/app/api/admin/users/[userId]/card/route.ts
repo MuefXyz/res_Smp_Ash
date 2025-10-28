@@ -41,7 +41,10 @@ export async function POST(
 
     const updatedUser = await db.user.update({
       where: { id: userId },
-      data: { cardId: cardId },
+      data: { 
+        cardId: cardId,
+        isActive: true  // Automatically activate user when card is assigned
+      },
       select: {
         id: true,
         name: true,
@@ -50,6 +53,13 @@ export async function POST(
         cardId: true,
         isActive: true,
       },
+    });
+
+    console.log("User updated successfully:", {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      cardId: updatedUser.cardId,
+      isActive: updatedUser.isActive
     });
 
     return NextResponse.json(updatedUser);
