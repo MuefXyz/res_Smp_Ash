@@ -41,6 +41,7 @@ export default function CardManagement() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isAssigning, setIsAssigning] = useState(false);
   const [formData, setFormData] = useState({
     cardId: '',
   });
@@ -65,6 +66,7 @@ export default function CardManagement() {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Fetched users:', data); // Debug log
         setUsers(data);
       } else if (response.status === 401) {
         toast.error('Sesi habis, silakan login kembali');
@@ -97,14 +99,17 @@ export default function CardManagement() {
     if (!selectedUser) return;
 
     try {
+      setIsAssigning(true);
       const token = localStorage.getItem('token');
       if (!token) {
         toast.error('Token tidak ditemukan, silakan login kembali');
         return;
       }
 
-      const response = await fetch(`/api/admin/users/${selectedUser.id}/card`, {
-        method: 'PATCH',
+      console.log('Assigning card:', formData.cardId, 'to user:', selectedUser.name); // Debug log
+
+      const response = await fetch(`/api/admin/users/${selectedUser.id}/card?t=${Date.now()}`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -113,10 +118,17 @@ export default function CardManagement() {
       });
       
       if (response.ok) {
-        toast.success('Card ID berhasil ditetapkan');
+        const result = await response.json();
+        console.log('Card assignment result:', result); // Debug log
+        toast.success(`Card ID "${formData.cardId}" berhasil ditetapkan untuk ${selectedUser.name}`);
         setIsDialogOpen(false);
         setSelectedUser(null);
-        fetchUsers();
+        setFormData({ cardId: '' });
+        
+        // Add a small delay to ensure database is updated
+        setTimeout(async () => {
+          await fetchUsers();
+        }, 500);
       } else if (response.status === 401) {
         toast.error('Sesi habis, silakan login kembali');
       } else {
@@ -126,6 +138,8 @@ export default function CardManagement() {
     } catch (error) {
       console.error('Error assigning card:', error);
       toast.error('Terjadi kesalahan');
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -294,12 +308,22 @@ export default function CardManagement() {
                     </TableCell>
                     <TableCell>
                       {user.cardId ? (
-                        <div className="flex items-center space-x-2">
-                          <QrCode className="h-4 w-4 text-green-600" />
-                          <span className="font-mono text-sm">{user.cardId}</span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <QrCode className="h-4 w-4 text-green-600" />
+                            <span className="font-mono text-sm font-medium">{user.cardId}</span>
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            Aktif
+                          </Badge>
                         </div>
                       ) : (
-                        <span className="text-gray-400">Belum ada</span>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-400 text-sm">Belum ada</span>
+                          <Badge variant="outline" className="text-xs text-orange-600 border-orange-200">
+                            Perlu Setup
+                          </Badge>
+                        </div>
                       )}
                     </TableCell>
                     <TableCell>
@@ -313,6 +337,8 @@ export default function CardManagement() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleAssignCard(user)}
+                          className="hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                          title={user.cardId ? "Edit Card ID" : "Generate Card ID"}
                         >
                           <CreditCard className="h-4 w-4" />
                         </Button>
@@ -321,8 +347,10 @@ export default function CardManagement() {
                             variant="outline"
                             size="sm"
                             onClick={() => downloadCard(user)}
+                            className="hover:bg-green-50 hover:border-green-300 transition-colors"
+                            title="Download Card PDF"
                           >
-                            <Download className="h-4 w-4" />
+                            <Download className="h-4 w-4 text-green-600" />
                           </Button>
                         )}
                       </div>
@@ -361,11 +389,26 @@ export default function CardManagement() {
             </div>
             
             <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsDialogOpen(false)}
+                disabled={isAssigning}
+              >
                 Batal
               </Button>
-              <Button type="submit">
-                Simpan
+              <Button 
+                type="submit" 
+                disabled={isAssigning}
+              >
+                {isAssigning ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Menyimpan...
+                  </>
+                ) : (
+                  'Simpan'
+                )}
               </Button>
             </div>
           </form>

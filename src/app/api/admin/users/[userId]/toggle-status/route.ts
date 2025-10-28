@@ -4,12 +4,14 @@ import { db } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   console.log('=== TOGGLE STATUS GET REQUEST ===');
-  console.log('User ID:', params.userId);
   
   try {
+    const { userId } = await params;
+    console.log('User ID:', userId);
+    
     // Verify authentication
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     console.log('Token:', token ? 'Present' : 'Missing');
@@ -25,7 +27,6 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { userId } = params;
     console.log('Target user ID:', userId);
 
     // Find the user
@@ -82,7 +83,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   console.log('=== TOGGLE STATUS POST REQUEST ===');
   return GET(request, { params });
@@ -90,7 +91,7 @@ export async function POST(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   console.log('=== TOGGLE STATUS PATCH REQUEST ===');
   return GET(request, { params });

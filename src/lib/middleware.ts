@@ -4,6 +4,16 @@ import { verifyToken } from '@/lib/auth';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Static files
+  if (pathname.startsWith('/_next') || pathname.startsWith('/static') || pathname.includes('.')) {
+    return NextResponse.next();
+  }
+
+  // API routes handle their own authentication
+  if (pathname.startsWith('/api')) {
+    return NextResponse.next();
+  }
+
   // Public routes yang tidak memerlukan authentication
   const publicRoutes = [
     '/',
@@ -13,11 +23,6 @@ export async function middleware(request: NextRequest) {
     '/api/auth/register',
     '/api/health',
   ];
-
-  // Static files
-  if (pathname.startsWith('/_next') || pathname.startsWith('/static') || pathname.includes('.')) {
-    return NextResponse.next();
-  }
 
   // Cek apakah route adalah public
   if (publicRoutes.includes(pathname)) {
@@ -62,19 +67,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Add user info to headers for API routes
-  if (pathname.startsWith('/api')) {
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-user-id', user.id);
-    requestHeaders.set('x-user-role', user.role);
-    
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
-  }
-
   return NextResponse.next();
 }
 
@@ -97,11 +89,10 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };

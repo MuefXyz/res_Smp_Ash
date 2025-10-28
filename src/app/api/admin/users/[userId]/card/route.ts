@@ -2,14 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-export async function PATCH(
+export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
-  console.log("=== ASSIGN CARD ID REQUEST ===");
-  console.log("User ID:", params.userId);
+  console.log("=== ASSIGN CARD ID POST REQUEST ===");
   
   try {
+    const { userId } = await params;
+    console.log("User ID:", userId);
+    
     const token = request.headers.get("authorization")?.replace("Bearer ", "");
     
     if (!token) {
@@ -22,7 +24,6 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { userId } = params;
     const body = await request.json();
     const { cardId } = body;
 

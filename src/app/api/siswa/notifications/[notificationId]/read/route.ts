@@ -4,12 +4,14 @@ import { db } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { notificationId: string } }
+  { params }: { params: Promise<{ notificationId: string }> }
 ) {
   console.log('=== MARK NOTIFICATION AS READ GET REQUEST (SISWA) ===');
-  console.log('Notification ID:', params.notificationId);
   
   try {
+    const { notificationId } = await params;
+    console.log('Notification ID:', notificationId);
+    
     // Verify authentication
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     console.log('Token:', token ? 'Present' : 'Missing');
@@ -25,7 +27,6 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { notificationId } = params;
     console.log('Target notification ID:', notificationId);
 
     // Check if notification exists and belongs to user
@@ -60,7 +61,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { notificationId: string } }
+  { params }: { params: Promise<{ notificationId: string }> }
 ) {
   console.log('=== MARK NOTIFICATION AS READ POST REQUEST (SISWA) ===');
   return GET(request, { params });
@@ -68,7 +69,7 @@ export async function POST(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { notificationId: string } }
+  { params }: { params: Promise<{ notificationId: string }> }
 ) {
   console.log('=== MARK NOTIFICATION AS READ PATCH REQUEST (SISWA) ===');
   return GET(request, { params });
