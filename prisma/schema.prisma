@@ -26,6 +26,7 @@ model User {
   address     String?
   isActive    Boolean  @default(true)
   avatar      String?
+  cardId      String?  @unique // Card ID untuk QR Code/RFID
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -38,6 +39,7 @@ model User {
   subjects      Subject[] // Guru yang mengajar mata pelajaran
   schedules     TeacherSchedule[]
   attendanceLogs TeacherAttendanceLog[]
+  cardScans     CardScan[] // Log scan kartu
 
   @@map("users")
 }
@@ -48,6 +50,7 @@ enum UserRole {
   GURU
   SISWA
   TU // Tata Usaha
+  STAFF // Staff untuk absensi dan scan kartu
 }
 
 // Notification system
@@ -226,4 +229,28 @@ model LearningPost {
   subject Subject? @relation(fields: [subjectId], references: [id])
 
   @@map("learning_posts")
+}
+
+// Card Scan System untuk tracking absensi berbasis kartu
+model CardScan {
+  id          String     @id @default(cuid())
+  cardId      String
+  userId      String
+  scanType    ScanType   @default(CHECK_IN) // CHECK_IN atau CHECK_OUT
+  scanTime    DateTime   @default(now())
+  location    String?    // Lokasi scan (misal: "Gerbang Utama", "Kelas 7A")
+  deviceInfo  String?    // Info device yang digunakan untuk scan
+  notes       String?    // Catatan tambahan
+  isValid     Boolean    @default(true) // Apakah scan valid
+  createdAt   DateTime   @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("card_scans")
+}
+
+enum ScanType {
+  CHECK_IN  // Check in masuk
+  CHECK_OUT // Check out keluar
 }

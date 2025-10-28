@@ -488,6 +488,7 @@ export default function UserManagement() {
                         <SelectItem value="ADMIN">Admin</SelectItem>
                         <SelectItem value="GURU">Guru</SelectItem>
                         <SelectItem value="TU">Tata Usaha</SelectItem>
+                        <SelectItem value="STAFF">Staff</SelectItem>
                         <SelectItem value="SISWA">Siswa</SelectItem>
                       </SelectContent>
                     </Select>
@@ -596,7 +597,8 @@ export default function UserManagement() {
                       <Badge variant={
                         user.role === 'ADMIN' ? 'destructive' :
                         user.role === 'GURU' ? 'default' :
-                        user.role === 'TU' ? 'secondary' : 'outline'
+                        user.role === 'STAFF' ? 'secondary' :
+                        user.role === 'TU' ? 'outline' : 'outline'
                       }>
                         {user.role}
                       </Badge>

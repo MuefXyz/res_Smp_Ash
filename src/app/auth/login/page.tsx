@@ -53,6 +53,9 @@ export default function LoginPage() {
           case 'TU':
             router.push('/tu');
             break;
+          case 'STAFF':
+            router.push('/staff');
+            break;
           case 'SISWA':
             router.push('/siswa');
             break;
@@ -199,6 +202,10 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Guru:</span>
                   <Badge variant="outline" className="text-xs">guru@demo.com / guru123</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Staff:</span>
+                  <Badge variant="outline" className="text-xs">staff@demo.com / staff123</Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Siswa:</span>

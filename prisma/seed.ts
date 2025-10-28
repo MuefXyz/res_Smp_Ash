@@ -16,6 +16,7 @@ async function main() {
       password: adminPassword,
       name: 'Administrator',
       role: 'ADMIN',
+      cardId: 'ADMIN001',
       isActive: true,
     },
   });
@@ -33,6 +34,7 @@ async function main() {
       nip: '198001012005011001',
       phone: '08123456789',
       address: 'Jakarta Selatan',
+      cardId: 'GURU001',
       isActive: true,
     },
   });
@@ -50,6 +52,7 @@ async function main() {
       nis: '2024001',
       phone: '08123456788',
       address: 'Jakarta Timur',
+      cardId: 'SISWA001',
       isActive: true,
     },
   });
@@ -67,6 +70,24 @@ async function main() {
       nip: '198502022010022001',
       phone: '08123456787',
       address: 'Jakarta Pusat',
+      isActive: true,
+    },
+  });
+
+  // Create Staff user
+  const staffPassword = await hashPassword('staff123');
+  const staff = await prisma.user.upsert({
+    where: { email: 'staff@demo.com' },
+    update: {},
+    create: {
+      email: 'staff@demo.com',
+      password: staffPassword,
+      name: 'Bambang Sutrisno',
+      role: 'STAFF',
+      nip: '199003032015031001',
+      phone: '08123456786',
+      address: 'Jakarta Barat',
+      cardId: 'STAFF001', // Card ID untuk demo
       isActive: true,
     },
   });

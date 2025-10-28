@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TeacherScheduleManager from '@/components/admin/TeacherScheduleManager';
 import UserManagement from '@/components/admin/UserManagement';
+import CardManagement from '@/components/admin/CardManagement';
 import { 
   Users, 
   UserCheck, 
@@ -28,7 +29,8 @@ import {
   BookOpen,
   Calendar,
   Download,
-  Upload
+  Upload,
+  CreditCard
 } from 'lucide-react';
 
 interface User {
@@ -60,6 +62,7 @@ export default function AdminDashboard() {
     totalSiswa: 0,
     totalGuru: 0,
     totalTU: 0,
+    totalStaff: 0,
     totalNotifications: 0,
     unreadNotifications: 0,
   });
@@ -112,6 +115,7 @@ export default function AdminDashboard() {
         const totalSiswa = usersData.filter((u: User) => u.role === 'SISWA').length;
         const totalGuru = usersData.filter((u: User) => u.role === 'GURU').length;
         const totalTU = usersData.filter((u: User) => u.role === 'TU').length;
+        const totalStaff = usersData.filter((u: User) => u.role === 'STAFF').length;
         
         setStats(prev => ({
           ...prev,
@@ -119,6 +123,7 @@ export default function AdminDashboard() {
           totalSiswa,
           totalGuru,
           totalTU,
+          totalStaff,
         }));
       } else if (usersResponse.status === 401) {
         // Token expired or invalid, redirect to login
@@ -170,7 +175,7 @@ export default function AdminDashboard() {
       }
 
       const response = await fetch(`/api/admin/users/${userId}/toggle-status`, {
-        method: 'PATCH',
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -276,7 +281,7 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -321,6 +326,20 @@ export default function AdminDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Staff</CardTitle>
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalStaff}</div>
+              <p className="text-xs text-muted-foreground">
+                <TrendingUp className="inline h-3 w-3 mr-1" />
+                +1 dari bulan lalu
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Notifikasi</CardTitle>
               <Bell className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -335,8 +354,9 @@ export default function AdminDashboard() {
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users">Manajemen User</TabsTrigger>
+            <TabsTrigger value="cards">Card ID</TabsTrigger>
             <TabsTrigger value="schedule">Jadwal Guru</TabsTrigger>
             <TabsTrigger value="notifications">Notifikasi</TabsTrigger>
             <TabsTrigger value="settings">Pengaturan</TabsTrigger>
@@ -344,6 +364,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="users" className="space-y-6">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="cards" className="space-y-6">
+            <CardManagement />
           </TabsContent>
 
           <TabsContent value="schedule" className="space-y-6">
