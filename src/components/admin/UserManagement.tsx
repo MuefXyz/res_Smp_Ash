@@ -183,6 +183,10 @@ export default function UserManagement() {
   };
 
   const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
+    console.log('=== TOGGLE STATUS CLICK ===');
+    console.log('User ID:', userId);
+    console.log('Current Status:', currentStatus);
+    
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -190,20 +194,43 @@ export default function UserManagement() {
         return;
       }
 
-      const response = await fetch(`/api/admin/users/${userId}/toggle-status`, {
+      console.log('Token found, making request...');
+      
+      // Try PATCH first, then fallback to POST
+      let response = await fetch(`/api/admin/users/${userId}/toggle-status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      console.log('PATCH Response status:', response.status);
+      console.log('PATCH Response ok:', response.ok);
+
+      // If PATCH fails, try POST as fallback
+      if (!response.ok && response.status === 405) {
+        console.log('PATCH not allowed, trying POST...');
+        response = await fetch(`/api/admin/users/${userId}/toggle-status`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        console.log('POST Response status:', response.status);
+        console.log('POST Response ok:', response.ok);
+      }
+
       if (response.ok) {
+        const result = await response.json();
+        console.log('Response data:', result);
         toast.success(`User berhasil ${currentStatus ? 'dinonaktifkan' : 'diaktifkan'}`);
         fetchUsers();
       } else if (response.status === 401) {
         toast.error('Sesi habis, silakan login kembali');
       } else {
-        toast.error('Gagal mengubah status user');
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        toast.error(errorData.error || 'Gagal mengubah status user');
       }
     } catch (error) {
       console.error('Error toggling user status:', error);
@@ -608,11 +635,13 @@ export default function UserManagement() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleToggleStatus(user.id, user.isActive)}
+                          title={user.isActive ? 'Non-aktifkan user' : 'Aktifkan user'}
+                          className="relative"
                         >
                           {user.isActive ? (
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-4 w-4 text-green-600" />
                           ) : (
-                            <CheckCircle className="h-4 w-4" />
+                            <CheckCircle className="h-4 w-4 text-gray-400" />
                           )}
                         </Button>
                         <Button
