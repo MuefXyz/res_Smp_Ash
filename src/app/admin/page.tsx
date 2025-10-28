@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TeacherScheduleManager from '@/components/admin/TeacherScheduleManager';
 import UserManagement from '@/components/admin/UserManagement';
 import CardManagement from '@/components/admin/CardManagement';
+import CardScanSystem from '@/components/admin/CardScanSystem';
 import { 
   Users, 
   UserCheck, 
@@ -30,7 +31,8 @@ import {
   Calendar,
   Download,
   Upload,
-  CreditCard
+  CreditCard,
+  Scan
 } from 'lucide-react';
 
 interface User {
@@ -354,9 +356,10 @@ export default function AdminDashboard() {
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="users">Manajemen User</TabsTrigger>
             <TabsTrigger value="cards">Card ID</TabsTrigger>
+            <TabsTrigger value="scan">Card Scan</TabsTrigger>
             <TabsTrigger value="schedule">Jadwal Guru</TabsTrigger>
             <TabsTrigger value="notifications">Notifikasi</TabsTrigger>
             <TabsTrigger value="settings">Pengaturan</TabsTrigger>
@@ -368,6 +371,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="cards" className="space-y-6">
             <CardManagement />
+          </TabsContent>
+
+          <TabsContent value="scan" className="space-y-6">
+            <CardScanSystem />
           </TabsContent>
 
           <TabsContent value="schedule" className="space-y-6">
