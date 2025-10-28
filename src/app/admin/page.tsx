@@ -113,20 +113,6 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    // Update main content margin based on sidebar state
-    const mainContent = document.getElementById('main-content');
-    if (mainContent) {
-      if (sidebarCollapsed) {
-        mainContent.classList.remove('ml-64');
-        mainContent.classList.add('ml-20');
-      } else {
-        mainContent.classList.remove('ml-20');
-        mainContent.classList.add('ml-64');
-      }
-    }
-  }, [sidebarCollapsed]);
-
-  useEffect(() => {
     // Check authentication
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
@@ -289,7 +275,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 overflow-hidden">
       {/* Fixed Sidebar */}
       <Sidebar 
         activeTab={activeTab}
@@ -301,7 +287,9 @@ export default function AdminDashboard() {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col ml-64 transition-all duration-300" id="main-content">
+      <div className={`flex flex-col min-h-screen transition-all duration-300 ${
+        sidebarCollapsed ? 'ml-20' : 'ml-64'
+      }`} id="main-content">
         {/* Top Header */}
         <header className="bg-white shadow-sm border-b sticky top-0 z-10">
           <div className="px-6 py-4">

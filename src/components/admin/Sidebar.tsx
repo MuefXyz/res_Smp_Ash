@@ -78,7 +78,7 @@ export default function Sidebar({ activeTab, onTabChange, user, stats, onLogout,
   ];
 
   return (
-    <div className={`bg-white border-r border-gray-200 h-screen flex flex-col transition-all duration-300 fixed left-0 top-0 z-20 ${
+    <div className={`bg-white border-r border-gray-200 h-screen flex flex-col transition-all duration-300 fixed left-0 top-0 z-30 overflow-hidden ${
       isCollapsed ? 'w-20' : 'w-64'
     }`}>
       {/* Header */}
@@ -105,7 +105,7 @@ export default function Sidebar({ activeTab, onTabChange, user, stats, onLogout,
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
