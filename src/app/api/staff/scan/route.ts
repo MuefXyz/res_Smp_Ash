@@ -36,7 +36,21 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(scans);
+    // Transform data to match frontend interface
+    const transformedScans = scans.map(scan => ({
+      id: scan.id,
+      cardId: scan.cardId,
+      userId: scan.userId,
+      scanType: scan.scanType,
+      scanTime: scan.scanTime.toISOString(),
+      location: scan.location || 'Unknown',
+      deviceInfo: scan.deviceInfo || 'Unknown',
+      isValid: scan.isValid,
+      createdAt: scan.createdAt.toISOString(),
+      user: scan.user
+    }));
+
+    return NextResponse.json(transformedScans);
 
   } catch (error) {
     console.error("Error fetching scan history:", error);
@@ -116,8 +130,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      user: { id: user.id, name: user.name, role: user.role },
-      scan: cardScan,
+      user: { id: user.id, name: user.name, role: user.role, email: user.email },
+      scan: {
+        id: cardScan.id,
+        cardId: cardScan.cardId,
+        userId: cardScan.userId,
+        scanType: cardScan.scanType,
+        scanTime: cardScan.scanTime.toISOString(),
+        location: cardScan.location,
+        deviceInfo: cardScan.deviceInfo,
+        isValid: cardScan.isValid,
+        createdAt: cardScan.createdAt.toISOString()
+      },
     });
 
   } catch (error) {

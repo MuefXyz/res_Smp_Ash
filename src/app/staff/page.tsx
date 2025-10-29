@@ -83,10 +83,30 @@ export default function StaffDashboard() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    toast.success('Logout berhasil');
-    window.location.href = '/login';
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      }
+      
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      toast.success('Logout berhasil');
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback: tetap logout meskipun API gagal
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      toast.success('Logout berhasil');
+      window.location.href = '/login';
+    }
   };
 
   const fetchScanHistory = async () => {
