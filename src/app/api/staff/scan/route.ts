@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Card not found" }, { status: 404 });
     }
 
+    // Create card scan record
     const cardScan = await db.cardScan.create({
       data: {
         cardId: cardId,
@@ -100,15 +101,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Create absence record for the scanned user
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
     const existingAbsence = await db.absence.findFirst({
       where: {
         userId: user.id,
         date: {
           gte: today,
-          lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
+          lt: tomorrow
         }
       }
     });
@@ -127,6 +131,69 @@ export async function POST(request: NextRequest) {
         }
       });
     }
+
+    // Create attendance log for the scanned user (like teacher logic)
+    const now = new Date();
+    const existingLog = await db.teacherAttendanceLog.findFirst({
+      where: {
+        teacherId: user.id,
+        date: {
+          gte: today,
+          lt: tomorrow
+        }
+      }
+    });
+
+    if (scanType === "CHECK_IN") {
+      if (!existingLog || !existingLog.checkInTime) {
+        if (existingLog) {
+          await db.teacherAttendanceLog.update({
+            where: { id: existingLog.id },
+            data: {
+              checkInTime: now,
+              status: "HADIR",
+              isScheduled: user.role === "GURU" ? false : false, // Staff tidak perlu jadwal
+            }
+          });
+        } else {
+          await db.teacherAttendanceLog.create({
+            data: {
+              teacherId: user.id,
+              date: now,
+              checkInTime: now,
+              status: "HADIR",
+              isScheduled: false, // Staff tidak perlu jadwal
+            }
+          });
+        }
+      }
+    } else if (scanType === "CHECK_OUT") {
+      if (existingLog && existingLog.checkInTime && !existingLog.checkOutTime) {
+        await db.teacherAttendanceLog.update({
+          where: { id: existingLog.id },
+          data: {
+            checkOutTime: now
+          }
+        });
+      }
+    }
+
+    // Create notification for admin
+    const admins = await db.user.findMany({
+      where: {
+        role: "ADMIN",
+        isActive: true,
+      },
+    });
+
+    await db.notification.createMany({
+      data: admins.map(admin => ({
+        userId: admin.id,
+        title: `Scan Kartu - ${scanType === "CHECK_IN" ? "Check In" : "Check Out"}`,
+        message: `${user.name} (${user.role}) melakukan ${scanType === "CHECK_IN" ? "check in" : "check out"} dengan kartu ${cardId}`,
+        type: "ABSENCE",
+      })),
+    });
 
     return NextResponse.json({
       success: true,

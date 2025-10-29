@@ -19,7 +19,9 @@ import {
   History,
   MapPin,
   LogOut,
-  User
+  User,
+  UserCircle,
+  Timer
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -41,6 +43,15 @@ interface CardScan {
   };
 }
 
+interface StaffAttendance {
+  id: string;
+  date: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+  status: string;
+  isScheduled: boolean;
+}
+
 export default function StaffDashboard() {
   const [scanHistory, setScanHistory] = useState<CardScan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,16 +60,147 @@ export default function StaffDashboard() {
   const [location, setLocation] = useState('Gerbang Utama');
   const [lastScan, setLastScan] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [staffAttendance, setStaffAttendance] = useState<StaffAttendance | null>(null);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchScanHistory();
     getCurrentUser();
+    fetchStaffAttendance();
     
     if (inputRef.current) {
       inputRef.current.focus();
     }
   }, []);
+
+  const fetchStaffAttendance = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      // Get attendance log for today
+      const response = await fetch(`/api/staff/attendance?date=${today.toISOString()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStaffAttendance(data);
+      }
+    } catch (error) {
+      console.error('Error fetching staff attendance:', error);
+    }
+  };
+
+  const handleStaffCheckIn = async () => {
+    try {
+      setAttendanceLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Token tidak ditemukan, silakan login kembali');
+        return;
+      }
+
+      const response = await fetch('/api/staff/attendance/checkin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast.success('Check-in berhasil!');
+        fetchStaffAttendance();
+        fetchScanHistory();
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Gagal melakukan check-in');
+      }
+    } catch (error) {
+      console.error('Error checking in:', error);
+      toast.error('Terjadi kesalahan saat check-in');
+    } finally {
+      setAttendanceLoading(false);
+    }
+  };
+
+  const handleStaffCheckOut = async () => {
+    try {
+      setAttendanceLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Token tidak ditemukan, silakan login kembali');
+        return;
+      }
+
+      const response = await fetch('/api/staff/attendance/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast.success('Check-out berhasil!');
+        fetchStaffAttendance();
+        fetchScanHistory();
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Gagal melakukan check-out');
+      }
+    } catch (error) {
+      console.error('Error checking out:', error);
+      toast.error('Terjadi kesalahan saat check-out');
+    } finally {
+      setAttendanceLoading(false);
+    }
+  };
+
+  const handleStaffAbsence = async () => {
+    try {
+      setAttendanceLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Token tidak ditemukan, silakan login kembali');
+        return;
+      }
+
+      const response = await fetch('/api/staff/absence', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast.success('Absensi berhasil!');
+        fetchStaffAttendance();
+        fetchScanHistory();
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Gagal melakukan absensi');
+      }
+    } catch (error) {
+      console.error('Error recording absence:', error);
+      toast.error('Terjadi kesalahan saat absensi');
+    } finally {
+      setAttendanceLoading(false);
+    }
+  };
 
   const getCurrentUser = async () => {
     try {
@@ -236,6 +378,99 @@ export default function StaffDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Staff Attendance Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UserCircle className="w-5 h-5" />
+            Absensi Saya
+          </CardTitle>
+          <CardDescription>
+            Kelola absensi kehadiran Anda hari ini
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 border rounded-lg">
+              <Timer className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+              <h3 className="font-semibold mb-1">Check In</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                {staffAttendance?.checkInTime 
+                  ? new Date(staffAttendance.checkInTime).toLocaleTimeString('id-ID', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                  : 'Belum check-in'
+                }
+              </p>
+              <Button 
+                onClick={handleStaffCheckIn}
+                disabled={attendanceLoading || !!staffAttendance?.checkInTime}
+                size="sm"
+                className="w-full"
+              >
+                {attendanceLoading ? (
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                )}
+                Check In
+              </Button>
+            </div>
+
+            <div className="text-center p-4 border rounded-lg">
+              <Timer className="w-8 h-8 mx-auto mb-2 text-green-600" />
+              <h3 className="font-semibold mb-1">Check Out</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                {staffAttendance?.checkOutTime 
+                  ? new Date(staffAttendance.checkOutTime).toLocaleTimeString('id-ID', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                  : 'Belum check-out'
+                }
+              </p>
+              <Button 
+                onClick={handleStaffCheckOut}
+                disabled={attendanceLoading || !staffAttendance?.checkInTime || !!staffAttendance?.checkOutTime}
+                size="sm"
+                variant="outline"
+                className="w-full"
+              >
+                {attendanceLoading ? (
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <XCircle className="w-4 h-4 mr-2" />
+                )}
+                Check Out
+              </Button>
+            </div>
+
+            <div className="text-center p-4 border rounded-lg">
+              <UserCheck className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+              <h3 className="font-semibold mb-1">Status</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                {staffAttendance?.status || 'Belum absen'}
+              </p>
+              <Button 
+                onClick={handleStaffAbsence}
+                disabled={attendanceLoading || !!staffAttendance}
+                size="sm"
+                variant="secondary"
+                className="w-full"
+              >
+                {attendanceLoading ? (
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <UserCheck className="w-4 h-4 mr-2" />
+                )}
+                Absen Hadir
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
