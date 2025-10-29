@@ -134,9 +134,79 @@ export default function RekapKehadiran() {
 
   const getTeacherAttendanceCount = (teacherId: string) => {
     if (!monthlyData) return 0;
-    return monthlyData.attendance.filter(
-      record => record.teacherId === teacherId && record.status === 'HADIR'
-    ).length;
+    
+    // Get scheduled days for this teacher
+    const scheduledDays = getScheduledDaysForTeacher(teacherId);
+    
+    // Count attendance only for scheduled days
+    const attendanceCount = monthlyData.attendance.filter(record => {
+      if (record.teacherId !== teacherId || record.status !== 'HADIR') {
+        return false;
+      }
+      
+      // Extract day from date (format: YYYY-MM-DD)
+      const recordDay = parseInt(record.date.split('-')[2]);
+      
+      // Check if this day is in the scheduled days
+      return scheduledDays.includes(recordDay);
+    }).length;
+    
+    return attendanceCount;
+  };
+
+  // Get detailed attendance statistics for a teacher
+  const getTeacherAttendanceStats = (teacherId: string) => {
+    if (!monthlyData) {
+      return { hadir: 0, alpha: 0, terlambat: 0, ijin: 0, sakit: 0, total: 0 };
+    }
+    
+    // Get scheduled days for this teacher
+    const scheduledDays = getScheduledDaysForTeacher(teacherId);
+    
+    // Initialize counters
+    const stats = {
+      hadir: 0,
+      alpha: 0,
+      terlambat: 0,
+      ijin: 0,
+      sakit: 0,
+      total: 0
+    };
+    
+    // Count attendance only for scheduled days
+    monthlyData.attendance.forEach(record => {
+      if (record.teacherId !== teacherId) {
+        return;
+      }
+      
+      // Extract day from date (format: YYYY-MM-DD)
+      const recordDay = parseInt(record.date.split('-')[2]);
+      
+      // Check if this day is in the scheduled days
+      if (scheduledDays.includes(recordDay)) {
+        stats.total++;
+        
+        switch (record.status) {
+          case 'HADIR':
+            stats.hadir++;
+            break;
+          case 'ALPHA':
+            stats.alpha++;
+            break;
+          case 'TERLAMBAT':
+            stats.terlambat++;
+            break;
+          case 'IZIN':
+            stats.ijin++;
+            break;
+          case 'SAKIT':
+            stats.sakit++;
+            break;
+        }
+      }
+    });
+    
+    return stats;
   };
 
   // Get scheduled days for a teacher in the current month
@@ -211,16 +281,39 @@ export default function RekapKehadiran() {
   const getStatistics = () => {
     if (!monthlyData) return { total: 0, hadir: 0, alpha: 0, terlambat: 0, ijin: 0, sakit: 0 };
 
-    const stats = monthlyData.attendance.reduce((acc, record) => {
-      acc.total++;
-      const status = record.status.toLowerCase();
-      if (status === 'hadir') acc.hadir++;
-      else if (status === 'alpha') acc.alpha++;
-      else if (status === 'terlambat') acc.terlambat++;
-      else if (status === 'izin') acc.ijin++;
-      else if (status === 'sakit') acc.sakit++;
-      return acc;
-    }, { total: 0, hadir: 0, alpha: 0, terlambat: 0, ijin: 0, sakit: 0 });
+    const stats = { total: 0, hadir: 0, alpha: 0, terlambat: 0, ijin: 0, sakit: 0 };
+
+    // Count attendance only for scheduled days
+    monthlyData.attendance.forEach(record => {
+      // Get scheduled days for this teacher
+      const scheduledDays = getScheduledDaysForTeacher(record.teacherId);
+      
+      // Extract day from date (format: YYYY-MM-DD)
+      const recordDay = parseInt(record.date.split('-')[2]);
+      
+      // Check if this day is in the scheduled days
+      if (scheduledDays.includes(recordDay)) {
+        stats.total++;
+        
+        switch (record.status) {
+          case 'HADIR':
+            stats.hadir++;
+            break;
+          case 'ALPHA':
+            stats.alpha++;
+            break;
+          case 'TERLAMBAT':
+            stats.terlambat++;
+            break;
+          case 'IZIN':
+            stats.ijin++;
+            break;
+          case 'SAKIT':
+            stats.sakit++;
+            break;
+        }
+      }
+    });
 
     return {
       total: stats.total,
@@ -491,9 +584,12 @@ export default function RekapKehadiran() {
                     );
                   })}
                   <th className="border-r border-t border-b border-gray-200 px-4 py-3 text-center font-bold text-white bg-gradient-to-r from-green-500 to-green-600 shadow-sm">
-                    <div className="flex items-center justify-center gap-1">
-                      <CheckCircle className="h-4 w-4" />
-                      Jumlah Hadir
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center justify-center gap-1">
+                        <CheckCircle className="h-4 w-4" />
+                        Jumlah Hadir
+                      </div>
+                      <span className="text-xs text-green-100">Hadir / Jadwal (%)</span>
                     </div>
                   </th>
                 </tr>
@@ -501,6 +597,10 @@ export default function RekapKehadiran() {
               <tbody>
                 {filteredTeachers.map((teacher, index) => {
                   const attendanceCount = getTeacherAttendanceCount(teacher.id);
+                  const teacherStats = getTeacherAttendanceStats(teacher.id);
+                  const scheduledDaysCount = getScheduledDaysForTeacher(teacher.id).length;
+                  const attendancePercentage = scheduledDaysCount > 0 ? Math.round((attendanceCount / scheduledDaysCount) * 100) : 0;
+                  
                   return (
                     <tr 
                       key={teacher.id} 
@@ -554,8 +654,29 @@ export default function RekapKehadiran() {
                       })}
                       <td className="border-r border-t border-b border-gray-200 px-4 py-3 text-center bg-gradient-to-r from-green-50 to-emerald-50">
                         <div className="flex flex-col items-center gap-1">
-                          <span className="text-lg font-bold text-green-700">{attendanceCount}</span>
-                          <span className="text-xs text-green-600">/ {getScheduledDaysForTeacher(teacher.id).length}</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-lg font-bold text-green-700">{attendanceCount}</span>
+                            <span className="text-xs text-green-600">/ {scheduledDaysCount}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-12 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-300 ${
+                                  attendancePercentage >= 90 ? 'bg-green-500' :
+                                  attendancePercentage >= 75 ? 'bg-yellow-500' :
+                                  attendancePercentage >= 50 ? 'bg-orange-500' : 'bg-red-500'
+                                }`}
+                                style={{ width: `${attendancePercentage}%` }}
+                              ></div>
+                            </div>
+                            <span className={`text-xs font-medium ${
+                              attendancePercentage >= 90 ? 'text-green-600' :
+                              attendancePercentage >= 75 ? 'text-yellow-600' :
+                              attendancePercentage >= 50 ? 'text-orange-600' : 'text-red-600'
+                            }`}>
+                              {attendancePercentage}%
+                            </span>
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -597,6 +718,18 @@ export default function RekapKehadiran() {
                   <span>{scheduledDays.length} hari jadwal</span>
                   <span>•</span>
                   <span>{daysInMonth} hari bulan</span>
+                  <span>•</span>
+                  <span>Kehadiran Rata-rata: {
+                    filteredTeachers.length > 0 
+                      ? Math.round(
+                          filteredTeachers.reduce((sum, teacher) => {
+                            const attendanceCount = getTeacherAttendanceCount(teacher.id);
+                            const scheduledDaysCount = getScheduledDaysForTeacher(teacher.id).length;
+                            return sum + (scheduledDaysCount > 0 ? (attendanceCount / scheduledDaysCount) * 100 : 0);
+                          }, 0) / filteredTeachers.length
+                        )
+                      : 0
+                  }%</span>
                 </div>
               </div>
             </div>
