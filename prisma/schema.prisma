@@ -1,0 +1,257 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model dengan role-based access
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  name        String
+  role        UserRole @default(SISWA)
+  nis         String?  @unique // Nomor Induk Siswa
+  nip         String?  @unique // Nomor Induk Pegawai (guru/staff)
+  phone       String?
+  address     String?
+  isActive    Boolean  @default(true)
+  avatar      String?
+  cardId      String?  @unique // Card ID untuk QR Code/RFID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  notifications Notification[]
+  absences      Absence[]
+  grades        Grade[]
+  payments      Payment[]
+  learningPosts LearningPost[]
+  subjects      Subject[] // Guru yang mengajar mata pelajaran
+  schedules     TeacherSchedule[]
+  attendanceLogs TeacherAttendanceLog[]
+  cardScans     CardScan[] // Log scan kartu
+
+  @@map("users")
+}
+
+// Enum untuk user roles
+enum UserRole {
+  ADMIN
+  GURU
+  SISWA
+  TU // Tata Usaha
+  STAFF // Staff untuk absensi dan scan kartu
+}
+
+// Notification system
+model Notification {
+  id        String           @id @default(cuid())
+  title     String
+  message   String
+  type      NotificationType
+  userId    String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  REGISTRATION // User baru register
+  ABSENCE      // Absensi guru/siswa
+  PAYMENT      // Pembayaran siswa
+  LEARNING     // Informasi pembelajaran
+  SYSTEM       // System notification
+}
+
+// Absence system
+model Absence {
+  id        String     @id @default(cuid())
+  userId    String
+  date      DateTime   @default(now())
+  status    AbsenceStatus
+  reason    String?
+  createdAt DateTime   @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("absences")
+}
+
+// Teacher Schedule System - Checklist Hari
+model TeacherSchedule {
+  id          String   @id @default(cuid())
+  teacherId   String
+  dayOfWeek   Int      // 1=Senin, 2=Selasa, ..., 7=Minggu
+  subjectId   String?  // Mata pelajaran yang diajar
+  room        String?  // Ruangan kelas
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  teacher User     @relation(fields: [teacherId], references: [id])
+  subject Subject? @relation(fields: [subjectId], references: [id])
+  attendanceLogs TeacherAttendanceLog[]
+
+  @@unique([teacherId, dayOfWeek])
+  @@map("teacher_schedules")
+}
+
+// Teacher Attendance Log - untuk mencatat kehadiran aktual
+model TeacherAttendanceLog {
+  id              String           @id @default(cuid())
+  teacherId       String
+  scheduleId      String?          // Reference to TeacherSchedule
+  date            DateTime         @default(now())
+  checkInTime     DateTime?        // Waktu check in aktual
+  checkOutTime    DateTime?       // Waktu check out aktual
+  status          AbsenceStatus    @default(HADIR)
+  notes           String?          // Catatan tambahan
+  isScheduled     Boolean          @default(false) // Apakah sesuai jadwal
+  overtimeHours   Float?           // Jam lembur (jika ada)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  teacher  User             @relation(fields: [teacherId], references: [id])
+  schedule TeacherSchedule? @relation(fields: [scheduleId], references: [id])
+
+  @@unique([teacherId, date])
+  @@map("teacher_attendance_logs")
+}
+
+enum AbsenceStatus {
+  HADIR
+  SAKIT
+  IZIN
+  ALPHA
+}
+
+// Subject/Mata Pelajaran
+model Subject {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  teacherId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  teacher User              @relation(fields: [teacherId], references: [id])
+  grades  Grade[]
+  posts   LearningPost[]
+  schedules TeacherSchedule[]
+
+  @@unique([teacherId, name])
+  @@map("subjects")
+}
+
+// Grade/Nilai
+model Grade {
+  id        String   @id @default(cuid())
+  studentId String
+  subjectId String
+  value     Float
+  semester  String
+  academicYear String
+  createdAt DateTime @default(now())
+
+  // Relations
+  student User    @relation(fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([studentId, subjectId, semester, academicYear])
+  @@map("grades")
+}
+
+// Payment/Keuangan
+model Payment {
+  id          String      @id @default(cuid())
+  studentId   String
+  type        PaymentType
+  amount      Float
+  dueDate     DateTime
+  paidDate    DateTime?
+  status      PaymentStatus @default(PENDING)
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  student User @relation(fields: [studentId], references: [id])
+
+  @@map("payments")
+}
+
+enum PaymentType {
+  SPP
+  UANG_BANGUNAN
+  UANG_KEGIATAN
+  UANG_BUKU
+  LAINNYA
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+// Learning Post/Informasi Pembelajaran
+model LearningPost {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  teacherId   String
+  subjectId   String?
+  attachment  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  teacher User    @relation(fields: [teacherId], references: [id])
+  subject Subject? @relation(fields: [subjectId], references: [id])
+
+  @@map("learning_posts")
+}
+
+// Card Scan System untuk tracking absensi berbasis kartu
+model CardScan {
+  id          String     @id @default(cuid())
+  cardId      String
+  userId      String
+  scanType    ScanType   @default(CHECK_IN) // CHECK_IN atau CHECK_OUT
+  scanTime    DateTime   @default(now())
+  location    String?    // Lokasi scan (misal: "Gerbang Utama", "Kelas 7A")
+  deviceInfo  String?    // Info device yang digunakan untuk scan
+  notes       String?    // Catatan tambahan
+  isValid     Boolean    @default(true) // Apakah scan valid
+  createdAt   DateTime   @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("card_scans")
+}
+
+enum ScanType {
+  CHECK_IN  // Check in masuk
+  CHECK_OUT // Check out keluar
+}

@@ -1,0 +1,5 @@
+10fa2ae Update database with latest changes
+1531bfd Fix critical bugs and improve user experience
+71ccc9f Implement staff attendance system similar to teacher logic
+7c8c747 Fix logout redirect URL from /login to /auth/login
+5783497 Fix staff dashboard integration and add sample data support
