@@ -140,6 +140,7 @@ export default function CoachAbsenceManagement() {
 
       const submitData = {
         ...formData,
+        date: selectedDate,
         participantCount: formData.participantCount ? parseInt(formData.participantCount) : undefined,
       };
 

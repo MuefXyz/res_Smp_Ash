@@ -97,7 +97,7 @@ export default function ExtracurricularManagement() {
       }
 
       // Fetch coaches (teachers and staff)
-      const coachesResponse = await fetch('/api/admin/users?role=GURU', {
+      const coachesResponse = await fetch('/api/admin/coach-attendance/coaches', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -105,8 +105,7 @@ export default function ExtracurricularManagement() {
 
       if (coachesResponse.ok) {
         const coachesData = await coachesResponse.json();
-        const activeCoaches = coachesData.filter((c: Coach) => c.isActive);
-        setCoaches(activeCoaches);
+        setCoaches(coachesData);
       }
     } catch (error) {
       console.error('Error fetching data:', error);

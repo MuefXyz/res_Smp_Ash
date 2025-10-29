@@ -40,7 +40,7 @@ import {
   FileText,
   School,
   Trophy,
-  UserChecklist
+  ClipboardCheck
 } from 'lucide-react';
 
 interface User {
@@ -71,24 +71,6 @@ const menuItems = [
     color: 'text-blue-600'
   },
   {
-    id: 'classes',
-    label: 'Manajemen Kelas',
-    icon: School,
-    color: 'text-purple-600'
-  },
-  {
-    id: 'extracurriculars',
-    label: 'Ekstrakurikuler',
-    icon: Trophy,
-    color: 'text-green-600'
-  },
-  {
-    id: 'coach-absence',
-    label: 'Absensi Pembina',
-    icon: UserChecklist,
-    color: 'text-orange-600'
-  },
-  {
     id: 'cards',
     label: 'Card ID',
     icon: CreditCard,
@@ -111,6 +93,24 @@ const menuItems = [
     label: 'Rekap Kehadiran',
     icon: FileText,
     color: 'text-indigo-600'
+  },
+  {
+    id: 'classes',
+    label: 'Manajemen Kelas',
+    icon: School,
+    color: 'text-cyan-600'
+  },
+  {
+    id: 'extracurriculars',
+    label: 'Ekstrakurikuler',
+    icon: Trophy,
+    color: 'text-yellow-600'
+  },
+  {
+    id: 'coach-attendance',
+    label: 'Kehadiran Pelatih',
+    icon: ClipboardCheck,
+    color: 'text-pink-600'
   },
   {
     id: 'notifications',
@@ -443,7 +443,7 @@ export default function AdminDashboard() {
               {activeTab === 'users' && <UserManagement />}
               {activeTab === 'classes' && <ClassManagement />}
               {activeTab === 'extracurriculars' && <ExtracurricularManagement />}
-              {activeTab === 'coach-absence' && <CoachAbsenceManagement />}
+              {activeTab === 'coach-attendance' && <CoachAbsenceManagement />}
               {activeTab === 'cards' && <CardManagement />}
               {activeTab === 'scan' && <CardScanSystem />}
               {activeTab === 'schedule' && <TeacherScheduleManager />}

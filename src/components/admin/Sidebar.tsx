@@ -15,7 +15,10 @@ import {
   GraduationCap,
   Menu,
   X,
-  FileText
+  FileText,
+  Building,
+  Trophy,
+  ClipboardCheck
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -68,6 +71,24 @@ export default function Sidebar({ activeTab, onTabChange, user, stats, onLogout,
       label: 'Rekap Kehadiran',
       icon: FileText,
       color: 'text-indigo-600'
+    },
+    {
+      id: 'classes',
+      label: 'Manajemen Kelas',
+      icon: Building,
+      color: 'text-cyan-600'
+    },
+    {
+      id: 'extracurriculars',
+      label: 'Ekstrakurikuler',
+      icon: Trophy,
+      color: 'text-yellow-600'
+    },
+    {
+      id: 'coach-attendance',
+      label: 'Kehadiran Pelatih',
+      icon: ClipboardCheck,
+      color: 'text-pink-600'
     },
     {
       id: 'notifications',

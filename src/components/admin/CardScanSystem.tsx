@@ -93,6 +93,8 @@ export default function CardScanSystem() {
   const [isScanDialogOpen, setIsScanDialogOpen] = useState(false);
   const [notifications, setNotifications] = useState<CardScanNotification[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'disabled'>('connecting');
+  const [connectionAttempts, setConnectionAttempts] = useState(0);
   const [formData, setFormData] = useState({
     cardId: '',
     scanType: 'CHECK_IN' as 'CHECK_IN' | 'CHECK_OUT',
@@ -131,16 +133,44 @@ export default function CardScanSystem() {
 
   const initializeSocket = () => {
     try {
-      const newSocket = io('http://localhost:3000');
+      // Disable Socket.IO after 3 failed attempts
+      if (connectionAttempts >= 3) {
+        console.log('🚫 Socket.IO disabled after multiple failed attempts');
+        setConnectionStatus('disabled');
+        return;
+      }
+
+      setConnectionStatus('connecting');
+      setConnectionAttempts(prev => prev + 1);
+      
+      // Use the same hostname as the current page to avoid connection issues
+      const socketUrl = process.env.NODE_ENV === 'production' 
+        ? window.location.origin 
+        : `${window.location.protocol}//${window.location.hostname}:3000`;
+      
+      console.log(`🚀 Attempt ${connectionAttempts + 1}: Connecting to Socket.IO at:`, socketUrl);
+      
+      // Simple, reliable configuration
+      const newSocket = io(socketUrl, {
+        path: '/api/socketio',
+        transports: ['polling'], // Start with polling only
+        timeout: 10000, // 10 second timeout
+        reconnection: false, // Handle manually
+        forceNew: true
+      });
+      
       setSocket(newSocket);
       
       newSocket.on('connect', () => {
-        console.log('Connected to socket server');
+        console.log('✅ Connected to socket server with ID:', newSocket.id);
+        console.log('📡 Transport used:', newSocket.io.engine.transport.name);
+        setConnectionStatus('connected');
+        setConnectionAttempts(0); // Reset attempts on successful connection
         newSocket.emit('join-admin');
       });
       
       newSocket.on('card-scan-notification', (notification: CardScanNotification) => {
-        console.log('Received card scan notification:', notification);
+        console.log('📨 Received card scan notification:', notification);
         
         // Add to notifications list
         setNotifications(prev => [notification, ...prev.slice(0, 4)]);
@@ -156,12 +186,39 @@ export default function CardScanSystem() {
         fetchStatistics();
       });
       
-      newSocket.on('disconnect', () => {
-        console.log('Disconnected from socket server');
+      newSocket.on('disconnect', (reason) => {
+        console.log('❌ Disconnected from socket server:', reason);
+        setConnectionStatus('disconnected');
+      });
+      
+      newSocket.on('connect_error', (error) => {
+        console.error('🔥 Socket connection error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          description: error.description,
+          context: error.context,
+          type: error.type,
+          transport: newSocket.io.engine?.transport?.name
+        });
+        
+        setConnectionStatus('disconnected');
+        
+        // Clean up the failed socket
+        newSocket.disconnect();
+        setSocket(null);
+        
+        // Retry after delay
+        if (error.message.includes('timeout') && connectionAttempts < 3) {
+          console.log('⏰ Timeout detected, retrying...');
+          setTimeout(() => {
+            initializeSocket();
+          }, 3000);
+        }
       });
       
     } catch (error) {
-      console.error('Error initializing socket:', error);
+      console.error('💥 Error initializing socket:', error);
+      setConnectionStatus('disconnected');
     }
   };
 
@@ -335,8 +392,41 @@ export default function CardScanSystem() {
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Scan className="w-6 h-6" />
             Card Scan System
+            <div className="flex items-center gap-1">
+              <div className={`w-2 h-2 rounded-full ${
+                connectionStatus === 'connected' ? 'bg-green-500' : 
+                connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 
+                connectionStatus === 'disabled' ? 'bg-gray-500' : 'bg-red-500'
+              }`} />
+              <span className="text-sm text-gray-500 capitalize">
+                {connectionStatus === 'connected' ? 'Connected' : 
+                 connectionStatus === 'connecting' ? 'Connecting...' : 
+                 connectionStatus === 'disabled' ? 'Real-time Disabled' : 'Disconnected'}
+              </span>
+              {connectionStatus === 'disabled' && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setConnectionAttempts(0);
+                    setConnectionStatus('connecting');
+                    initializeSocket();
+                  }}
+                  className="ml-2 text-xs"
+                >
+                  Retry
+                </Button>
+              )}
+            </div>
           </h2>
-          <p className="text-gray-600">Sistem absensi berbasis kartu dengan QR Code</p>
+          <p className="text-gray-600">
+            Sistem absensi berbasis kartu dengan QR Code
+            {connectionStatus === 'disabled' && (
+              <span className="text-orange-600 ml-2">
+                (Real-time notifications disabled due to connection issues)
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setIsScanDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
