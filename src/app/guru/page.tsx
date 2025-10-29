@@ -62,13 +62,9 @@ export default function GuruDashboard() {
   const [learningPosts, setLearningPosts] = useState<LearningPost[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
-  const [stats, setStats] = useState({
-    totalPosts: 0,
-    totalSubjects: 0,
-    totalStudents: 0,
-    todayAbsences: 0,
-  });
+  const [todayAbsence, setTodayAbsence] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [absenceLoading, setAbsenceLoading] = useState(false);
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPost, setNewPost] = useState({
     title: '',
@@ -99,6 +95,9 @@ export default function GuruDashboard() {
 
   const fetchData = async () => {
     try {
+      // Fetch today's absence status
+      await fetchTodayAbsence();
+
       // Fetch learning posts
       const postsResponse = await fetch('/api/guru/posts', {
         headers: {
@@ -134,18 +133,36 @@ export default function GuruDashboard() {
         const studentsData = await studentsResponse.json();
         setStudents(studentsData);
       }
-
-      // Calculate stats
-      setStats({
-        totalPosts: learningPosts.length,
-        totalSubjects: subjects.length,
-        totalStudents: students.length,
-        todayAbsences: 0, // TODO: Fetch from API
-      });
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTodayAbsence = async () => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const response = await fetch(`/api/guru/absence?date=${today.toISOString()}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      
+      if (response.ok) {
+        const absences = await response.json();
+        const todayAbsenceData = absences.find((absence: any) => {
+          const absenceDate = new Date(absence.date);
+          return absenceDate >= today && absenceDate < tomorrow;
+        });
+        setTodayAbsence(todayAbsenceData || null);
+      }
+    } catch (error) {
+      console.error('Error fetching today absence:', error);
     }
   };
 
@@ -180,18 +197,25 @@ export default function GuruDashboard() {
 
   const handleAbsence = async () => {
     try {
+      setAbsenceLoading(true);
       const response = await fetch('/api/guru/absence', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
+        body: JSON.stringify({
+          status: 'HADIR',
+          reason: 'Absensi harian'
+        })
       });
 
       if (response.ok) {
-        fetchData();
+        await fetchTodayAbsence(); // Refresh today's absence status
       }
     } catch (error) {
       console.error('Error recording absence:', error);
+    } finally {
+      setAbsenceLoading(false);
     }
   };
 
@@ -221,9 +245,17 @@ export default function GuruDashboard() {
             </div>
             
             <div className="flex items-center space-x-4">
-              <Button onClick={handleAbsence} className="bg-green-600 hover:bg-green-700">
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Absen Hari Ini
+              <Button 
+                onClick={handleAbsence} 
+                className="bg-green-600 hover:bg-green-700"
+                disabled={!!todayAbsence || absenceLoading}
+              >
+                {absenceLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                )}
+                {todayAbsence ? `Sudah Absen (${todayAbsence.status})` : 'Absen Hari Ini'}
               </Button>
               
               <div className="flex items-center space-x-2">
@@ -257,7 +289,7 @@ export default function GuruDashboard() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPosts}</div>
+              <div className="text-2xl font-bold">{learningPosts.length}</div>
               <p className="text-xs text-muted-foreground">
                 <TrendingUp className="inline h-3 w-3 mr-1" />
                 +2 minggu ini
@@ -271,7 +303,7 @@ export default function GuruDashboard() {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalSubjects}</div>
+              <div className="text-2xl font-bold">{subjects.length}</div>
               <p className="text-xs text-muted-foreground">
                 <Award className="inline h-3 w-3 mr-1" />
                 Aktif mengajar
@@ -285,7 +317,7 @@ export default function GuruDashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalStudents}</div>
+              <div className="text-2xl font-bold">{students.length}</div>
               <p className="text-xs text-muted-foreground">
                 <UserCheck className="inline h-3 w-3 mr-1" />
                 Seluruh kelas
@@ -299,10 +331,12 @@ export default function GuruDashboard() {
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.todayAbsences}</div>
+              <div className="text-2xl font-bold">
+                {todayAbsence ? todayAbsence.status : 'Belum'}
+              </div>
               <p className="text-xs text-muted-foreground">
                 <Clock className="inline h-3 w-3 mr-1" />
-                Belum absen
+                {todayAbsence ? `Sudah absen hari ini` : 'Belum absen'}
               </p>
             </CardContent>
           </Card>

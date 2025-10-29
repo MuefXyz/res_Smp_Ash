@@ -33,12 +33,7 @@ export async function GET(request: NextRequest) {
         isActive: true
       },
       include: {
-        subject: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
+        subject: true
       }
     });
 
@@ -105,3 +100,7 @@ export async function GET(request: NextRequest) {
 }
 
 const dayNames = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+
+const getDayName = (dayOfWeek: number) => {
+  return dayNames[dayOfWeek] || 'Unknown';
+};

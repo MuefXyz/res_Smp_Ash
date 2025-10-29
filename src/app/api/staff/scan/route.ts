@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create absence record for the scanned user
+    // Create absence record for the scanned user (HADIR only)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
@@ -132,53 +132,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create attendance log for the scanned user (like teacher logic)
-    const now = new Date();
-    const existingLog = await db.teacherAttendanceLog.findFirst({
-      where: {
-        teacherId: user.id,
-        date: {
-          gte: today,
-          lt: tomorrow
-        }
-      }
-    });
-
-    if (scanType === "CHECK_IN") {
-      if (!existingLog || !existingLog.checkInTime) {
-        if (existingLog) {
-          await db.teacherAttendanceLog.update({
-            where: { id: existingLog.id },
-            data: {
-              checkInTime: now,
-              status: "HADIR",
-              isScheduled: user.role === "GURU" ? false : false, // Staff tidak perlu jadwal
-            }
-          });
-        } else {
-          await db.teacherAttendanceLog.create({
-            data: {
-              teacherId: user.id,
-              date: now,
-              checkInTime: now,
-              status: "HADIR",
-              isScheduled: false, // Staff tidak perlu jadwal
-            }
-          });
-        }
-      }
-    } else if (scanType === "CHECK_OUT") {
-      if (existingLog && existingLog.checkInTime && !existingLog.checkOutTime) {
-        await db.teacherAttendanceLog.update({
-          where: { id: existingLog.id },
-          data: {
-            checkOutTime: now
-          }
-        });
-      }
-    }
-
-    // Create notification for admin
+    // Create notification for admin (simple like original)
     const admins = await db.user.findMany({
       where: {
         role: "ADMIN",
@@ -189,9 +143,9 @@ export async function POST(request: NextRequest) {
     await db.notification.createMany({
       data: admins.map(admin => ({
         userId: admin.id,
-        title: `Scan Kartu - ${scanType === "CHECK_IN" ? "Check In" : "Check Out"}`,
-        message: `${user.name} (${user.role}) melakukan ${scanType === "CHECK_IN" ? "check in" : "check out"} dengan kartu ${cardId}`,
-        type: "ABSENCE",
+        title: 'Absensi Guru',
+        message: `${user.name} telah melakukan absensi hari ini`,
+        type: 'ABSENCE',
       })),
     });
 

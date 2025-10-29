@@ -213,13 +213,13 @@ export default function RekapKehadiran() {
   const getScheduledDaysForTeacher = (teacherId: string) => {
     if (!monthlyData) return [];
     
+    const daysInMonth = getDaysInMonth(currentDate);
     const teacher = monthlyData.teachers.find(t => t.id === teacherId);
     if (!teacher || !teacher.schedules.length) {
       // Fallback: return all days of the month if no schedules found
       return Array.from({ length: daysInMonth }, (_, i) => i + 1);
     }
     
-    const daysInMonth = getDaysInMonth(currentDate);
     const scheduledDays = [];
     
     for (let day = 1; day <= daysInMonth; day++) {
@@ -246,6 +246,7 @@ export default function RekapKehadiran() {
   const getAllScheduledDays = () => {
     if (!monthlyData) return [];
     
+    const daysInMonth = getDaysInMonth(currentDate);
     const allDays = new Set<number>();
     
     monthlyData.teachers.forEach(teacher => {

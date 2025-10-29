@@ -56,7 +56,6 @@ export default function StaffDashboard() {
   const [scanHistory, setScanHistory] = useState<CardScan[]>([]);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
-  const [scanType, setScanType] = useState<'CHECK_IN' | 'CHECK_OUT'>('CHECK_IN');
   const [location, setLocation] = useState('Gerbang Utama');
   const [lastScan, setLastScan] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -287,7 +286,6 @@ export default function StaffDashboard() {
     setScanning(true);
     console.log('=== STAFF CARD SCAN ===');
     console.log('Card ID:', cardId);
-    console.log('Scan Type:', scanType);
     console.log('Location:', location);
 
     try {
@@ -305,7 +303,6 @@ export default function StaffDashboard() {
         },
         body: JSON.stringify({
           cardId: cardId.trim(),
-          scanType,
           location,
           deviceInfo: 'Staff Dashboard Scanner'
         })
@@ -316,7 +313,7 @@ export default function StaffDashboard() {
 
       if (response.ok) {
         setLastScan(result);
-        toast.success(`${result.user.name} - ${scanType === 'CHECK_IN' ? 'Check In' : 'Check Out'} berhasil!`);
+        toast.success(`${result.user.name} - Absensi HADIR berhasil!`);
         
         if (inputRef.current) {
           inputRef.current.value = '';
@@ -480,43 +477,29 @@ export default function StaffDashboard() {
               Card Scanner
             </CardTitle>
             <CardDescription>
-              Scan kartu ID untuk absensi siswa/guru
+              Scan kartu ID untuk absensi HADIR siswa/guru
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Tipe Scan</label>
-                <Select value={scanType} onValueChange={(value: 'CHECK_IN' | 'CHECK_OUT') => setScanType(value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CHECK_IN">Check In</SelectItem>
-                    <SelectItem value="CHECK_OUT">Check Out</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Lokasi</label>
-                <Select value={location} onValueChange={setLocation}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Gerbang Utama">Gerbang Utama</SelectItem>
-                    <SelectItem value="Gerbang Belakang">Gerbang Belakang</SelectItem>
-                    <SelectItem value="Kelas 7A">Kelas 7A</SelectItem>
-                    <SelectItem value="Kelas 7B">Kelas 7B</SelectItem>
-                    <SelectItem value="Kelas 8A">Kelas 8A</SelectItem>
-                    <SelectItem value="Kelas 8B">Kelas 8B</SelectItem>
-                    <SelectItem value="Kelas 9A">Kelas 9A</SelectItem>
-                    <SelectItem value="Kelas 9B">Kelas 9B</SelectItem>
-                    <SelectItem value="Lab Komputer">Lab Komputer</SelectItem>
-                    <SelectItem value="Perpustakaan">Perpustakaan</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <label className="text-sm font-medium">Lokasi</label>
+              <Select value={location} onValueChange={setLocation}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Gerbang Utama">Gerbang Utama</SelectItem>
+                  <SelectItem value="Gerbang Belakang">Gerbang Belakang</SelectItem>
+                  <SelectItem value="Kelas 7A">Kelas 7A</SelectItem>
+                  <SelectItem value="Kelas 7B">Kelas 7B</SelectItem>
+                  <SelectItem value="Kelas 8A">Kelas 8A</SelectItem>
+                  <SelectItem value="Kelas 8B">Kelas 8B</SelectItem>
+                  <SelectItem value="Kelas 9A">Kelas 9A</SelectItem>
+                  <SelectItem value="Kelas 9B">Kelas 9B</SelectItem>
+                  <SelectItem value="Lab Komputer">Lab Komputer</SelectItem>
+                  <SelectItem value="Perpustakaan">Perpustakaan</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
