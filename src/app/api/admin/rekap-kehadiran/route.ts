@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     const startDate = new Date(year, monthNum - 1, 1);
     const endDate = new Date(year, monthNum, 0); // Last day of month
 
-    // Get all teachers
+    // Get all teachers with their schedules
     const teachers = await db.user.findMany({
       where: {
         role: 'GURU',
@@ -60,7 +60,18 @@ export async function GET(request: NextRequest) {
         name: true,
         nip: true,
         email: true,
-        role: true
+        role: true,
+        teacherSchedules: {
+          select: {
+            dayOfWeek: true,
+            subject: {
+              select: {
+                name: true
+              }
+            },
+            room: true
+          }
+        }
       },
       orderBy: {
         name: 'asc'
@@ -100,8 +111,22 @@ export async function GET(request: NextRequest) {
       notes: record.notes
     }));
 
+    // Transform teachers data with schedules
+    const transformedTeachers = teachers.map(teacher => ({
+      id: teacher.id,
+      name: teacher.name,
+      nip: teacher.nip,
+      email: teacher.email,
+      role: teacher.role,
+      schedules: teacher.teacherSchedules.map(schedule => ({
+        dayOfWeek: schedule.dayOfWeek,
+        subject: schedule.subject?.name || null,
+        room: schedule.room || null
+      }))
+    }));
+
     const response = {
-      teachers,
+      teachers: transformedTeachers,
       attendance,
       month: monthNum,
       year

@@ -23,6 +23,13 @@ interface Teacher {
   nip: string;
   email: string;
   role: string;
+  schedules: TeacherSchedule[];
+}
+
+interface TeacherSchedule {
+  dayOfWeek: number;
+  subject: string | null;
+  room: string | null;
 }
 
 interface AttendanceRecord {
@@ -132,6 +139,59 @@ export default function RekapKehadiran() {
     ).length;
   };
 
+  // Get scheduled days for a teacher in the current month
+  const getScheduledDaysForTeacher = (teacherId: string) => {
+    if (!monthlyData) return [];
+    
+    const teacher = monthlyData.teachers.find(t => t.id === teacherId);
+    if (!teacher || !teacher.schedules.length) return [];
+    
+    const daysInMonth = getDaysInMonth(currentDate);
+    const scheduledDays = [];
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+      const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+      const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // Convert to 1-7 (Monday-Sunday)
+      
+      // Check if teacher has schedule on this day
+      const hasSchedule = teacher.schedules.some(schedule => schedule.dayOfWeek === adjustedDayOfWeek);
+      if (hasSchedule) {
+        scheduledDays.push(day);
+      }
+    }
+    
+    return scheduledDays;
+  };
+
+  // Get all unique scheduled days across all teachers for the current month
+  const getAllScheduledDays = () => {
+    if (!monthlyData) return [];
+    
+    const allDays = new Set<number>();
+    
+    monthlyData.teachers.forEach(teacher => {
+      const scheduledDays = getScheduledDaysForTeacher(teacher.id);
+      scheduledDays.forEach(day => allDays.add(day));
+    });
+    
+    return Array.from(allDays).sort((a, b) => a - b);
+  };
+
+  // Check if a specific day is scheduled for a teacher
+  const isDayScheduledForTeacher = (teacherId: string, day: number) => {
+    if (!monthlyData) return false;
+    
+    const teacher = monthlyData.teachers.find(t => t.id === teacherId);
+    if (!teacher || !teacher.schedules.length) return false;
+    
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    const dayOfWeek = date.getDay();
+    const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
+    
+    return teacher.schedules.some(schedule => schedule.dayOfWeek === adjustedDayOfWeek);
+  };
+
   const getStatistics = () => {
     if (!monthlyData) return { total: 0, hadir: 0, alpha: 0, terlambat: 0, ijin: 0, sakit: 0 };
 
@@ -181,6 +241,7 @@ export default function RekapKehadiran() {
 
   const stats = getStatistics();
   const daysInMonth = getDaysInMonth(currentDate);
+  const scheduledDays = getAllScheduledDays();
 
   return (
     <div className="space-y-6">
@@ -368,6 +429,9 @@ export default function RekapKehadiran() {
               </CardTitle>
               <CardDescription className="text-gray-600 mt-1">
                 Rekap kehadiran guru untuk <span className="font-semibold text-blue-600">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
+                <div className="text-xs mt-1">
+                  Menampilkan {scheduledDays.length} hari jadwal dari {daysInMonth} hari bulan ini
+                </div>
               </CardDescription>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -390,17 +454,23 @@ export default function RekapKehadiran() {
                   <th className="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-900 bg-gradient-to-r from-gray-50 to-transparent">
                     NIP
                   </th>
-                  {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
-                    const isWeekend = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).getDay() === 0 || 
-                                     new Date(currentDate.getFullYear(), currentDate.getMonth(), day).getDay() === 6;
+                  {scheduledDays.map(day => {
+                    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                    const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+                    const dayName = dayNames[date.getDay()];
+                    
                     return (
                       <th
                         key={day}
-                        className={`border border-gray-200 px-1 py-3 text-center font-semibold text-xs min-w-[35px] ${
+                        className={`border border-gray-200 px-1 py-3 text-center font-semibold text-xs min-w-[45px] ${
                           isWeekend ? 'bg-red-50 text-red-700' : 'bg-gray-50 text-gray-700'
                         }`}
                       >
-                        {day}
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-xs text-gray-500">{dayName}</span>
+                          <span className="font-bold">{day}</span>
+                        </div>
                       </th>
                     );
                   })}
@@ -431,40 +501,45 @@ export default function RekapKehadiran() {
                       <td className="border border-gray-200 px-4 py-3 text-center font-mono text-sm text-gray-700">
                         {teacher.nip}
                       </td>
-                      {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+                      {scheduledDays.map(day => {
                         const attendance = getAttendanceForDate(teacher.id, day);
-                        const isWeekend = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).getDay() === 0 || 
-                                         new Date(currentDate.getFullYear(), currentDate.getMonth(), day).getDay() === 6;
+                        const isScheduled = isDayScheduledForTeacher(teacher.id, day);
+                        const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
                         
                         return (
                           <td
                             key={day}
                             className={`border border-gray-200 px-1 py-2 text-center transition-colors duration-150 ${
                               isWeekend ? 'bg-red-50/30' : ''
-                            } ${attendance ? 'hover:bg-gray-100' : ''}`}
+                            } ${!isScheduled ? 'bg-gray-100' : ''} ${attendance ? 'hover:bg-gray-100' : ''}`}
                           >
-                            {attendance && attendance.status === 'HADIR' ? (
-                              <div className="flex justify-center">
-                                <div className="p-1 bg-green-100 rounded-full">
-                                  <Check className="h-3 w-3 text-green-600" />
+                            {isScheduled ? (
+                              attendance && attendance.status === 'HADIR' ? (
+                                <div className="flex justify-center">
+                                  <div className="p-1 bg-green-100 rounded-full">
+                                    <Check className="h-3 w-3 text-green-600" />
+                                  </div>
                                 </div>
-                              </div>
-                            ) : attendance ? (
-                              <div className="flex justify-center">
-                                <div className="p-1 bg-red-100 rounded-full">
-                                  <XCircle className="h-3 w-3 text-red-500" />
+                              ) : attendance ? (
+                                <div className="flex justify-center">
+                                  <div className="p-1 bg-red-100 rounded-full">
+                                    <XCircle className="h-3 w-3 text-red-500" />
+                                  </div>
                                 </div>
-                              </div>
+                              ) : (
+                                <div className="h-3 w-3 mx-auto rounded-full bg-orange-200"></div>
+                              )
                             ) : (
-                              <div className="h-3 w-3 mx-auto rounded-full bg-gray-200"></div>
+                              <div className="h-3 w-3 mx-auto rounded-full bg-gray-300"></div>
                             )}
                           </td>
                         );
                       })}
                       <td className="border-r border-t border-b border-gray-200 px-4 py-3 text-center bg-gradient-to-r from-green-50 to-emerald-50">
-                        <div className="flex items-center justify-center gap-1">
+                        <div className="flex flex-col items-center gap-1">
                           <span className="text-lg font-bold text-green-700">{attendanceCount}</span>
-                          <span className="text-xs text-green-600">/ {daysInMonth}</span>
+                          <span className="text-xs text-green-600">/ {getScheduledDaysForTeacher(teacher.id).length}</span>
                         </div>
                       </td>
                     </tr>
@@ -476,8 +551,8 @@ export default function RekapKehadiran() {
           
           {/* Table Footer */}
           <div className="bg-gray-50 border-t border-gray-200 px-6 py-3">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-gray-600">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-green-100 rounded-full flex items-center justify-center">
                     <Check className="h-2 w-2 text-green-600" />
@@ -491,12 +566,22 @@ export default function RekapKehadiran() {
                   <span>Tidak Hadir</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-gray-200 rounded-full"></div>
-                  <span>Belum Ada Data</span>
+                  <div className="w-3 h-3 bg-orange-200 rounded-full"></div>
+                  <span>Belum Check-in</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                  <span>Tidak Jadwal</span>
                 </div>
               </div>
               <div className="text-xs text-gray-500">
-                Total: {filteredTeachers.length} guru • {daysInMonth} hari
+                <div className="flex flex-col lg:flex-row lg:items-center gap-1">
+                  <span>Total: {filteredTeachers.length} guru</span>
+                  <span>•</span>
+                  <span>{scheduledDays.length} hari jadwal</span>
+                  <span>•</span>
+                  <span>{daysInMonth} hari bulan</span>
+                </div>
               </div>
             </div>
           </div>
