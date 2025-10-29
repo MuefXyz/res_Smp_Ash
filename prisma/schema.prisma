@@ -31,15 +31,21 @@ model User {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  notifications Notification[]
-  absences      Absence[]
-  grades        Grade[]
-  payments      Payment[]
-  learningPosts LearningPost[]
-  subjects      Subject[] // Guru yang mengajar mata pelajaran
-  schedules     TeacherSchedule[]
-  attendanceLogs TeacherAttendanceLog[]
-  cardScans     CardScan[] // Log scan kartu
+  notifications     Notification[]
+  absences          Absence[]
+  grades            Grade[]
+  payments          Payment[]
+  learningPosts     LearningPost[]
+  subjects          Subject[] // Guru yang mengajar mata pelajaran
+  schedules         TeacherSchedule[]
+  attendanceLogs    TeacherAttendanceLog[]
+  cardScans         CardScan[] // Log scan kartu
+  classStudents     ClassStudent[] // Siswa di kelas
+  homeroomClasses   Class[] // Kelas yang diwalikan (wali kelas)
+  extracurriculars  Extracurricular[] // Ekstrakurikuler yang dibina
+  coachAbsences     CoachAbsence[] // Absensi pembina
+  classSchedules    ClassSchedule[] // Jadwal mengajar di kelas
+  extracurricularMemberships ExtracurricularMember[] // Ekstrakurikuler yang diikuti
 
   @@map("users")
 }
@@ -157,6 +163,7 @@ model Subject {
   grades  Grade[]
   posts   LearningPost[]
   schedules TeacherSchedule[]
+  classSchedules ClassSchedule[]
 
   @@unique([teacherId, name])
   @@map("subjects")
@@ -254,4 +261,127 @@ model CardScan {
 enum ScanType {
   CHECK_IN  // Check in masuk
   CHECK_OUT // Check out keluar
+}
+
+// Class Management System
+model Class {
+  id                String   @id @default(cuid())
+  name              String   // Nama kelas (misal: "VII-A", "VIII-B")
+  level             String   // Tingkat kelas (misal: "VII", "VIII", "IX")
+  academicYear      String   // Tahun ajaran (misal: "2024/2025")
+  homeroomTeacherId String?  // ID wali kelas
+  room              String?  // Ruangan kelas
+  capacity          Int      @default(30) // Kapasitas maksimal
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  homeroomTeacher User?         @relation(fields: [homeroomTeacherId], references: [id])
+  students        ClassStudent[]
+  schedules       ClassSchedule[]
+
+  @@unique([name, academicYear])
+  @@map("classes")
+}
+
+// Class Student (Many-to-Many between Class and User)
+model ClassStudent {
+  id        String   @id @default(cuid())
+  classId   String
+  studentId String
+  joinedAt  DateTime @default(now())
+  isActive  Boolean  @default(true)
+
+  // Relations
+  class   Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student User  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, studentId])
+  @@map("class_students")
+}
+
+// Class Schedule
+model ClassSchedule {
+  id          String   @id @default(cuid())
+  classId     String
+  subjectId   String
+  teacherId   String
+  dayOfWeek   Int      // 1=Senin, 2=Selasa, ..., 7=Minggu
+  startTime   String   // Format: "07:00"
+  endTime     String   // Format: "08:30"
+  room        String?
+  semester    String   @default("Ganjil") // Ganjil/Genap
+  academicYear String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  class   Class   @relation(fields: [classId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  teacher User    @relation(fields: [teacherId], references: [id])
+
+  @@unique([classId, subjectId, dayOfWeek, startTime])
+  @@map("class_schedules")
+}
+
+// Extracurricular Management
+model Extracurricular {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  coachId     String   // Pembina/Pelatih
+  schedule    String?  // Jadwal latihan (misal: "Senin & Rabu, 15:00-17:00")
+  venue       String?  // Tempat latihan
+  maxMembers  Int      @default(30) // Kapasitas maksimal
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  coach   User              @relation(fields: [coachId], references: [id])
+  members ExtracurricularMember[]
+  coachAbsences CoachAbsence[]
+
+  @@map("extracurriculars")
+}
+
+// Extracurricular Member (Siswa yang ikut ekstrakurikuler)
+model ExtracurricularMember {
+  id                String   @id @default(cuid())
+  extracurricularId String
+  studentId         String
+  joinedAt          DateTime @default(now())
+  role              String   @default("Anggota") // Anggota, Ketua, Sekretaris, dll
+  isActive          Boolean  @default(true)
+
+  // Relations
+  extracurricular Extracurricular @relation(fields: [extracurricularId], references: [id], onDelete: Cascade)
+  student         User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([extracurricularId, studentId])
+  @@map("extracurricular_members")
+}
+
+// Coach Absence System (Absensi Pembina Ekstrakurikuler)
+model CoachAbsence {
+  id                String     @id @default(cuid())
+  coachId           String
+  extracurricularId String
+  date              DateTime   @default(now())
+  status            AbsenceStatus @default(HADIR)
+  reason            String?
+  notes             String?    // Catatan tambahan (misal: materi latihan)
+  startTime         DateTime?  // Waktu mulai latihan
+  endTime           DateTime?  // Waktu selesai latihan
+  participantCount  Int?       // Jumlah peserta yang hadir
+  createdAt         DateTime   @default(now())
+
+  // Relations
+  coach           User           @relation(fields: [coachId], references: [id])
+  extracurricular Extracurricular @relation(fields: [extracurricularId], references: [id])
+
+  @@unique([coachId, extracurricularId, date])
+  @@map("coach_absences")
 }
