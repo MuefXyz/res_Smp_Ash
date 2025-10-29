@@ -98,14 +98,14 @@ export default function StaffDashboard() {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       toast.success('Logout berhasil');
-      window.location.href = '/login';
+      window.location.href = '/auth/login';
     } catch (error) {
       console.error('Logout error:', error);
       // Fallback: tetap logout meskipun API gagal
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       toast.success('Logout berhasil');
-      window.location.href = '/login';
+      window.location.href = '/auth/login';
     }
   };
 

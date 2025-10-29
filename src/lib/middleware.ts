@@ -17,8 +17,8 @@ export async function middleware(request: NextRequest) {
   // Public routes yang tidak memerlukan authentication
   const publicRoutes = [
     '/',
-    '/login',
-    '/register',
+    '/auth/login',
+    '/auth/register',
     '/api/auth/login',
     '/api/auth/register',
     '/api/health',
@@ -35,14 +35,14 @@ export async function middleware(request: NextRequest) {
 
   if (!token) {
     // Redirect ke login jika tidak ada token
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 
   // Verify token
   const user = verifyToken(token);
   if (!user) {
     // Clear invalid token and redirect
-    const response = NextResponse.redirect(new URL('/login', request.url));
+    const response = NextResponse.redirect(new URL('/auth/login', request.url));
     response.cookies.delete('token');
     return response;
   }
@@ -81,7 +81,7 @@ function getDashboardRoute(role: string): string {
     case 'TU':
       return '/tu';
     default:
-      return '/login';
+      return '/auth/login';
   }
 }
 
