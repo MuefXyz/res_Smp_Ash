@@ -12,6 +12,9 @@ import CardManagement from '@/components/admin/CardManagement';
 import CardScanSystem from '@/components/admin/CardScanSystem';
 import RekapKehadiran from '@/components/admin/RekapKehadiran';
 import Sidebar from '@/components/admin/Sidebar';
+import ClassManagement from '@/components/admin/ClassManagement';
+import ExtracurricularManagement from '@/components/admin/ExtracurricularManagement';
+import CoachAbsenceManagement from '@/components/admin/CoachAbsenceManagement';
 import { 
   Users, 
   UserCheck, 
@@ -34,7 +37,10 @@ import {
   Upload,
   CreditCard,
   Scan,
-  FileText
+  FileText,
+  School,
+  Trophy,
+  UserChecklist
 } from 'lucide-react';
 
 interface User {
@@ -63,6 +69,24 @@ const menuItems = [
     label: 'Manajemen User',
     icon: Users,
     color: 'text-blue-600'
+  },
+  {
+    id: 'classes',
+    label: 'Manajemen Kelas',
+    icon: School,
+    color: 'text-purple-600'
+  },
+  {
+    id: 'extracurriculars',
+    label: 'Ekstrakurikuler',
+    icon: Trophy,
+    color: 'text-green-600'
+  },
+  {
+    id: 'coach-absence',
+    label: 'Absensi Pembina',
+    icon: UserChecklist,
+    color: 'text-orange-600'
   },
   {
     id: 'cards',
@@ -417,6 +441,9 @@ export default function AdminDashboard() {
             {/* Tab Content */}
             <div className="space-y-6">
               {activeTab === 'users' && <UserManagement />}
+              {activeTab === 'classes' && <ClassManagement />}
+              {activeTab === 'extracurriculars' && <ExtracurricularManagement />}
+              {activeTab === 'coach-absence' && <CoachAbsenceManagement />}
               {activeTab === 'cards' && <CardManagement />}
               {activeTab === 'scan' && <CardScanSystem />}
               {activeTab === 'schedule' && <TeacherScheduleManager />}
