@@ -14,7 +14,8 @@ import {
   LogOut,
   GraduationCap,
   Menu,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -61,6 +62,12 @@ export default function Sidebar({ activeTab, onTabChange, user, stats, onLogout,
       label: 'Jadwal Guru',
       icon: Calendar,
       color: 'text-orange-600'
+    },
+    {
+      id: 'rekap',
+      label: 'Rekap Kehadiran',
+      icon: FileText,
+      color: 'text-indigo-600'
     },
     {
       id: 'notifications',

@@ -10,6 +10,7 @@ import TeacherScheduleManager from '@/components/admin/TeacherScheduleManager';
 import UserManagement from '@/components/admin/UserManagement';
 import CardManagement from '@/components/admin/CardManagement';
 import CardScanSystem from '@/components/admin/CardScanSystem';
+import RekapKehadiran from '@/components/admin/RekapKehadiran';
 import Sidebar from '@/components/admin/Sidebar';
 import { 
   Users, 
@@ -32,7 +33,8 @@ import {
   Download,
   Upload,
   CreditCard,
-  Scan
+  Scan,
+  FileText
 } from 'lucide-react';
 
 interface User {
@@ -79,6 +81,12 @@ const menuItems = [
     label: 'Jadwal Guru',
     icon: Calendar,
     color: 'text-orange-600'
+  },
+  {
+    id: 'rekap',
+    label: 'Rekap Kehadiran',
+    icon: FileText,
+    color: 'text-indigo-600'
   },
   {
     id: 'notifications',
@@ -412,6 +420,7 @@ export default function AdminDashboard() {
               {activeTab === 'cards' && <CardManagement />}
               {activeTab === 'scan' && <CardScanSystem />}
               {activeTab === 'schedule' && <TeacherScheduleManager />}
+              {activeTab === 'rekap' && <RekapKehadiran />}
               {activeTab === 'notifications' && (
                 <Card>
                   <CardHeader>
