@@ -2,6 +2,48 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/db";
 
+export async function GET(request: NextRequest) {
+  console.log("=== GET SCAN HISTORY ===");
+  
+  try {
+    const token = request.headers.get("authorization")?.replace("Bearer ", "");
+    
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const staff = verifyToken(token);
+    
+    if (!staff || staff.role !== "STAFF") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '20');
+
+    const scans = await db.cardScan.findMany({
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+            email: true,
+          }
+        }
+      }
+    });
+
+    return NextResponse.json(scans);
+
+  } catch (error) {
+    console.error("Error fetching scan history:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   console.log("=== CARD SCAN REQUEST ===");
   

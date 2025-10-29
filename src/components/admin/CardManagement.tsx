@@ -16,7 +16,8 @@ import {
   QrCode,
   CreditCard,
   RefreshCw,
-  Users
+  Users,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
@@ -159,6 +160,45 @@ export default function CardManagement() {
     } catch (error) {
       console.error('Error generating QR code:', error);
       throw error;
+    }
+  };
+
+  const handleRemoveCard = async (user: User) => {
+    if (!user.cardId) {
+      toast.error('User tidak memiliki Card ID');
+      return;
+    }
+
+    if (!confirm(`Apakah Anda yakin ingin menghapus Card ID "${user.cardId}" dari ${user.name}?`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Token tidak ditemukan, silakan login kembali');
+        return;
+      }
+
+      const response = await fetch(`/api/admin/users/${user.id}/card`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        toast.success(`Card ID berhasil dihapus dari ${user.name}`);
+        await fetchUsers();
+      } else if (response.status === 401) {
+        toast.error('Sesi habis, silakan login kembali');
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Gagal menghapus Card ID');
+      }
+    } catch (error) {
+      console.error('Error removing card:', error);
+      toast.error('Terjadi kesalahan');
     }
   };
 
@@ -346,15 +386,26 @@ export default function CardManagement() {
                           <CreditCard className="h-4 w-4" />
                         </Button>
                         {user.cardId && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => downloadCard(user)}
-                            className="hover:bg-green-50 hover:border-green-300 transition-colors"
-                            title="Download Card PDF"
-                          >
-                            <Download className="h-4 w-4 text-green-600" />
-                          </Button>
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => downloadCard(user)}
+                              className="hover:bg-green-50 hover:border-green-300 transition-colors"
+                              title="Download Card PDF"
+                            >
+                              <Download className="h-4 w-4 text-green-600" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRemoveCard(user)}
+                              className="hover:bg-red-50 hover:border-red-300 transition-colors"
+                              title="Hapus Card ID"
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </>
                         )}
                       </div>
                     </TableCell>

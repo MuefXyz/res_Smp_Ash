@@ -17,7 +17,9 @@ import {
   Camera,
   UserCheck,
   History,
-  MapPin
+  MapPin,
+  LogOut,
+  User
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -46,15 +48,46 @@ export default function StaffDashboard() {
   const [scanType, setScanType] = useState<'CHECK_IN' | 'CHECK_OUT'>('CHECK_IN');
   const [location, setLocation] = useState('Gerbang Utama');
   const [lastScan, setLastScan] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchScanHistory();
+    getCurrentUser();
     
     if (inputRef.current) {
       inputRef.current.focus();
     }
   }, []);
+
+  const getCurrentUser = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Token tidak ditemukan, silakan login kembali');
+        return;
+      }
+
+      const response = await fetch('/api/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentUser(data);
+      }
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    toast.success('Logout berhasil');
+    window.location.href = '/login';
+  };
 
   const fetchScanHistory = async () => {
     try {
@@ -165,10 +198,23 @@ export default function StaffDashboard() {
           <h1 className="text-3xl font-bold">Staff Dashboard</h1>
           <p className="text-gray-600">Sistem Absensi Berbasis Kartu</p>
         </div>
-        <Button onClick={fetchScanHistory} variant="outline">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-3">
+          {currentUser && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <User className="w-4 h-4" />
+              <span>{currentUser.name}</span>
+              <Badge variant="outline">{currentUser.role}</Badge>
+            </div>
+          )}
+          <Button onClick={fetchScanHistory} variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+          <Button onClick={handleLogout} variant="destructive" size="sm">
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
