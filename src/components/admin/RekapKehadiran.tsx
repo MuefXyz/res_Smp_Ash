@@ -13,7 +13,8 @@ import {
   XCircle, 
   Clock,
   Download,
-  Filter
+  Filter,
+  Check
 } from 'lucide-react';
 
 interface Teacher {
@@ -122,6 +123,13 @@ export default function RekapKehadiran() {
     return monthlyData.attendance.find(
       record => record.teacherId === teacherId && record.date === dateStr
     );
+  };
+
+  const getTeacherAttendanceCount = (teacherId: string) => {
+    if (!monthlyData) return 0;
+    return monthlyData.attendance.filter(
+      record => record.teacherId === teacherId && record.status === 'HADIR'
+    ).length;
   };
 
   const getStatistics = () => {
@@ -343,46 +351,50 @@ export default function RekapKehadiran() {
                       {day}
                     </th>
                   ))}
+                  <th className="border border-gray-200 px-4 py-2 text-center font-medium text-gray-900 bg-green-50">
+                    Jumlah Hadir
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredTeachers.map((teacher, index) => (
-                  <tr key={teacher.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="border border-gray-200 px-4 py-2 font-medium">
-                      {teacher.name}
-                    </td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">
-                      {teacher.nip}
-                    </td>
-                    {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
-                      const attendance = getAttendanceForDate(teacher.id, day);
-                      const StatusIcon = attendance ? statusIcons[attendance.status] : null;
-                      
-                      return (
-                        <td
-                          key={day}
-                          className="border border-gray-200 px-2 py-2 text-center"
-                        >
-                          {attendance ? (
-                            <div className="flex flex-col items-center space-y-1">
-                              <Badge
-                                variant="secondary"
-                                className={`text-xs ${statusColors[attendance.status]}`}
-                              >
-                                {attendance.status.replace('_', ' ')}
-                              </Badge>
-                              {StatusIcon && (
-                                <StatusIcon className="h-3 w-3 text-gray-600" />
-                              )}
-                            </div>
-                          ) : (
-                            <div className="h-6"></div>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
+                {filteredTeachers.map((teacher, index) => {
+                  const attendanceCount = getTeacherAttendanceCount(teacher.id);
+                  return (
+                    <tr key={teacher.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="border border-gray-200 px-4 py-2 font-medium">
+                        {teacher.name}
+                      </td>
+                      <td className="border border-gray-200 px-4 py-2 text-center">
+                        {teacher.nip}
+                      </td>
+                      {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+                        const attendance = getAttendanceForDate(teacher.id, day);
+                        
+                        return (
+                          <td
+                            key={day}
+                            className="border border-gray-200 px-2 py-2 text-center"
+                          >
+                            {attendance && attendance.status === 'HADIR' ? (
+                              <div className="flex justify-center">
+                                <Check className="h-4 w-4 text-green-600" />
+                              </div>
+                            ) : attendance ? (
+                              <div className="flex justify-center">
+                                <XCircle className="h-4 w-4 text-red-500" />
+                              </div>
+                            ) : (
+                              <div className="h-4"></div>
+                            )}
+                          </td>
+                        );
+                      })}
+                      <td className="border border-gray-200 px-4 py-2 text-center bg-green-50 font-bold text-green-700">
+                        {attendanceCount}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
