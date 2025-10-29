@@ -185,115 +185,141 @@ export default function RekapKehadiran() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Rekap Kehadiran Guru</h2>
-          <p className="text-gray-500">
-            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-          </p>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigateMonth('prev')}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          
-          <span className="px-4 py-2 bg-gray-100 rounded-md font-medium">
-            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-          </span>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigateMonth('next')}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={exportToExcel}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
+      <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50">
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-600 rounded-lg shadow-md">
+                <Calendar className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Rekap Kehadiran Guru</h1>
+                <p className="text-gray-600 flex items-center gap-1 mt-1">
+                  <span className="font-medium">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateMonth('prev')}
+                className="hover:bg-blue-50 text-gray-700"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium shadow-sm">
+                {monthNames[currentDate.getMonth()].substring(0, 3)} {currentDate.getFullYear()}
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateMonth('next')}
+                className="hover:bg-blue-50 text-gray-700"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              
+              <div className="w-px h-6 bg-gray-300 mx-1" />
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={exportToExcel}
+                className="hover:bg-green-50 text-green-700"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Export</span>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-        <Card>
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow duration-200">
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-4 w-4 text-blue-600" />
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Users className="h-5 w-5 text-blue-600" />
+              </div>
               <div>
-                <p className="text-sm text-gray-500">Total Guru</p>
-                <p className="text-lg font-bold">{monthlyData?.teachers.length || 0}</p>
+                <p className="text-xs text-gray-500 font-medium">Total Guru</p>
+                <p className="text-xl font-bold text-gray-900">{monthlyData?.teachers.length || 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow duration-200">
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+              </div>
               <div>
-                <p className="text-sm text-gray-500">Hadir</p>
-                <p className="text-lg font-bold text-green-600">{stats.hadir}</p>
+                <p className="text-xs text-gray-500 font-medium">Hadir</p>
+                <p className="text-xl font-bold text-green-600">{stats.hadir}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow duration-200">
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <XCircle className="h-4 w-4 text-red-600" />
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <XCircle className="h-5 w-5 text-red-600" />
+              </div>
               <div>
-                <p className="text-sm text-gray-500">Alpa</p>
-                <p className="text-lg font-bold text-red-600">{stats.alpha}</p>
+                <p className="text-xs text-gray-500 font-medium">Alpa</p>
+                <p className="text-xl font-bold text-red-600">{stats.alpha}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow duration-200">
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-yellow-600" />
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Clock className="h-5 w-5 text-yellow-600" />
+              </div>
               <div>
-                <p className="text-sm text-gray-500">Terlambat</p>
-                <p className="text-lg font-bold text-yellow-600">{stats.terlambat}</p>
+                <p className="text-xs text-gray-500 font-medium">Terlambat</p>
+                <p className="text-xl font-bold text-yellow-600">{stats.terlambat}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow duration-200">
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4 text-blue-600" />
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Calendar className="h-5 w-5 text-blue-600" />
+              </div>
               <div>
-                <p className="text-sm text-gray-500">Izin</p>
-                <p className="text-lg font-bold text-blue-600">{stats.ijin}</p>
+                <p className="text-xs text-gray-500 font-medium">Izin</p>
+                <p className="text-xl font-bold text-blue-600">{stats.ijin}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow duration-200">
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-purple-600" />
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Clock className="h-5 w-5 text-purple-600" />
+              </div>
               <div>
-                <p className="text-sm text-gray-500">Sakit</p>
-                <p className="text-lg font-bold text-purple-600">{stats.sakit}</p>
+                <p className="text-xs text-gray-500 font-medium">Sakit</p>
+                <p className="text-xl font-bold text-purple-600">{stats.sakit}</p>
               </div>
             </div>
           </CardContent>
@@ -301,58 +327,88 @@ export default function RekapKehadiran() {
       </div>
 
       {/* Filter */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Filter</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4">
-            <Filter className="h-4 w-4 text-gray-500" />
+      <Card className="border-0 shadow-md">
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <Filter className="h-4 w-4 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Filter Status</h3>
+                <p className="text-xs text-gray-500">Saring data berdasarkan status kehadiran</p>
+              </div>
+            </div>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
             >
-              <option value="ALL">Semua Status</option>
-              <option value="HADIR">Hadir</option>
-              <option value="ALPHA">Alpa</option>
-              <option value="TERLAMBAT">Terlambat</option>
-              <option value="IZIN">Izin</option>
-              <option value="SAKIT">Sakit</option>
+              <option value="ALL">📊 Semua Status</option>
+              <option value="HADIR">✅ Hadir</option>
+              <option value="ALPHA">❌ Alpa</option>
+              <option value="TERLAMBAT">⏰ Terlambat</option>
+              <option value="IZIN">📄 Izin</option>
+              <option value="SAKIT">🏥 Sakit</option>
             </select>
           </div>
         </CardContent>
       </Card>
 
       {/* Attendance Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Tabel Kehadiran</CardTitle>
-          <CardDescription>
-            Rekap kehadiran guru untuk {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-          </CardDescription>
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <CardTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <div className="p-1 bg-blue-600 rounded">
+                  <Calendar className="h-4 w-4 text-white" />
+                </div>
+                Tabel Kehadiran Guru
+              </CardTitle>
+              <CardDescription className="text-gray-600 mt-1">
+                Rekap kehadiran guru untuk <span className="font-semibold text-blue-600">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Users className="h-4 w-4" />
+              <span>{filteredTeachers.length} guru</span>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="border border-gray-200 px-4 py-2 text-left font-medium text-gray-900">
-                    Nama Guru
+                <tr className="bg-gradient-to-b from-gray-50 to-white border-b-2 border-gray-200">
+                  <th className="border-l border-t border-b border-gray-200 px-4 py-3 text-left font-semibold text-gray-900 bg-gradient-to-r from-blue-50 to-transparent">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-blue-600" />
+                      Nama Guru
+                    </div>
                   </th>
-                  <th className="border border-gray-200 px-4 py-2 text-center font-medium text-gray-900">
+                  <th className="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-900 bg-gradient-to-r from-gray-50 to-transparent">
                     NIP
                   </th>
-                  {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => (
-                    <th
-                      key={day}
-                      className="border border-gray-200 px-2 py-2 text-center font-medium text-gray-900 min-w-[40px]"
-                    >
-                      {day}
-                    </th>
-                  ))}
-                  <th className="border border-gray-200 px-4 py-2 text-center font-medium text-gray-900 bg-green-50">
-                    Jumlah Hadir
+                  {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+                    const isWeekend = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).getDay() === 0 || 
+                                     new Date(currentDate.getFullYear(), currentDate.getMonth(), day).getDay() === 6;
+                    return (
+                      <th
+                        key={day}
+                        className={`border border-gray-200 px-1 py-3 text-center font-semibold text-xs min-w-[35px] ${
+                          isWeekend ? 'bg-red-50 text-red-700' : 'bg-gray-50 text-gray-700'
+                        }`}
+                      >
+                        {day}
+                      </th>
+                    );
+                  })}
+                  <th className="border-r border-t border-b border-gray-200 px-4 py-3 text-center font-bold text-white bg-gradient-to-r from-green-500 to-green-600 shadow-sm">
+                    <div className="flex items-center justify-center gap-1">
+                      <CheckCircle className="h-4 w-4" />
+                      Jumlah Hadir
+                    </div>
                   </th>
                 </tr>
               </thead>
@@ -360,43 +416,89 @@ export default function RekapKehadiran() {
                 {filteredTeachers.map((teacher, index) => {
                   const attendanceCount = getTeacherAttendanceCount(teacher.id);
                   return (
-                    <tr key={teacher.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="border border-gray-200 px-4 py-2 font-medium">
-                        {teacher.name}
+                    <tr 
+                      key={teacher.id} 
+                      className={`transition-all duration-150 hover:bg-blue-50 ${
+                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                      }`}
+                    >
+                      <td className="border-l border-t border-b border-gray-200 px-4 py-3 font-medium text-gray-900">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          {teacher.name}
+                        </div>
                       </td>
-                      <td className="border border-gray-200 px-4 py-2 text-center">
+                      <td className="border border-gray-200 px-4 py-3 text-center font-mono text-sm text-gray-700">
                         {teacher.nip}
                       </td>
                       {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
                         const attendance = getAttendanceForDate(teacher.id, day);
+                        const isWeekend = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).getDay() === 0 || 
+                                         new Date(currentDate.getFullYear(), currentDate.getMonth(), day).getDay() === 6;
                         
                         return (
                           <td
                             key={day}
-                            className="border border-gray-200 px-2 py-2 text-center"
+                            className={`border border-gray-200 px-1 py-2 text-center transition-colors duration-150 ${
+                              isWeekend ? 'bg-red-50/30' : ''
+                            } ${attendance ? 'hover:bg-gray-100' : ''}`}
                           >
                             {attendance && attendance.status === 'HADIR' ? (
                               <div className="flex justify-center">
-                                <Check className="h-4 w-4 text-green-600" />
+                                <div className="p-1 bg-green-100 rounded-full">
+                                  <Check className="h-3 w-3 text-green-600" />
+                                </div>
                               </div>
                             ) : attendance ? (
                               <div className="flex justify-center">
-                                <XCircle className="h-4 w-4 text-red-500" />
+                                <div className="p-1 bg-red-100 rounded-full">
+                                  <XCircle className="h-3 w-3 text-red-500" />
+                                </div>
                               </div>
                             ) : (
-                              <div className="h-4"></div>
+                              <div className="h-3 w-3 mx-auto rounded-full bg-gray-200"></div>
                             )}
                           </td>
                         );
                       })}
-                      <td className="border border-gray-200 px-4 py-2 text-center bg-green-50 font-bold text-green-700">
-                        {attendanceCount}
+                      <td className="border-r border-t border-b border-gray-200 px-4 py-3 text-center bg-gradient-to-r from-green-50 to-emerald-50">
+                        <div className="flex items-center justify-center gap-1">
+                          <span className="text-lg font-bold text-green-700">{attendanceCount}</span>
+                          <span className="text-xs text-green-600">/ {daysInMonth}</span>
+                        </div>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+          </div>
+          
+          {/* Table Footer */}
+          <div className="bg-gray-50 border-t border-gray-200 px-6 py-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-green-100 rounded-full flex items-center justify-center">
+                    <Check className="h-2 w-2 text-green-600" />
+                  </div>
+                  <span>Hadir</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-red-100 rounded-full flex items-center justify-center">
+                    <XCircle className="h-2 w-2 text-red-500" />
+                  </div>
+                  <span>Tidak Hadir</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-gray-200 rounded-full"></div>
+                  <span>Belum Ada Data</span>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500">
+                Total: {filteredTeachers.length} guru • {daysInMonth} hari
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
