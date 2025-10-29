@@ -144,7 +144,10 @@ export default function RekapKehadiran() {
     if (!monthlyData) return [];
     
     const teacher = monthlyData.teachers.find(t => t.id === teacherId);
-    if (!teacher || !teacher.schedules.length) return [];
+    if (!teacher || !teacher.schedules.length) {
+      // Fallback: return all days of the month if no schedules found
+      return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    }
     
     const daysInMonth = getDaysInMonth(currentDate);
     const scheduledDays = [];
@@ -161,6 +164,11 @@ export default function RekapKehadiran() {
       }
     }
     
+    // Fallback: if no scheduled days found, return all days
+    if (scheduledDays.length === 0) {
+      return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    }
+    
     return scheduledDays;
   };
 
@@ -175,15 +183,23 @@ export default function RekapKehadiran() {
       scheduledDays.forEach(day => allDays.add(day));
     });
     
-    return Array.from(allDays).sort((a, b) => a - b);
+    const result = Array.from(allDays).sort((a, b) => a - b);
+    
+    // If no scheduled days found, return all days of the month as fallback
+    if (result.length === 0) {
+      const allDaysOfMonth = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+      return allDaysOfMonth;
+    }
+    
+    return result;
   };
 
   // Check if a specific day is scheduled for a teacher
   const isDayScheduledForTeacher = (teacherId: string, day: number) => {
-    if (!monthlyData) return false;
+    if (!monthlyData) return true; // Fallback: assume all days are scheduled
     
     const teacher = monthlyData.teachers.find(t => t.id === teacherId);
-    if (!teacher || !teacher.schedules.length) return false;
+    if (!teacher || !teacher.schedules.length) return true; // Fallback: assume all days are scheduled
     
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     const dayOfWeek = date.getDay();

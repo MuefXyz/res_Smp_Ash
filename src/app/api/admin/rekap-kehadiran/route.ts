@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
         nip: true,
         email: true,
         role: true,
-        teacherSchedules: {
+        schedules: {
           select: {
             dayOfWeek: true,
             subject: {
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
       nip: teacher.nip,
       email: teacher.email,
       role: teacher.role,
-      schedules: teacher.teacherSchedules.map(schedule => ({
+      schedules: teacher.schedules.map(schedule => ({
         dayOfWeek: schedule.dayOfWeek,
         subject: schedule.subject?.name || null,
         room: schedule.room || null
