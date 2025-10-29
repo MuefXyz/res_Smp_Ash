@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Get all attendance records for the month
-    const attendanceRecords = await db.teacherAttendance.findMany({
+    const attendanceRecords = await db.teacherAttendanceLog.findMany({
       where: {
         date: {
           gte: startDate,
@@ -94,8 +94,8 @@ export async function GET(request: NextRequest) {
     const attendance = attendanceRecords.map(record => ({
       teacherId: record.teacherId,
       date: record.date.toISOString().split('T')[0],
-      checkIn: record.checkIn?.toISOString().split('T')[1]?.substring(0, 5),
-      checkOut: record.checkOut?.toISOString().split('T')[1]?.substring(0, 5),
+      checkIn: record.checkInTime?.toISOString().split('T')[1]?.substring(0, 5),
+      checkOut: record.checkOutTime?.toISOString().split('T')[1]?.substring(0, 5),
       status: record.status,
       notes: record.notes
     }));

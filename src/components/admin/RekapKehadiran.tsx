@@ -29,7 +29,7 @@ interface AttendanceRecord {
   date: string;
   checkIn?: string;
   checkOut?: string;
-  status: 'HADIR' | 'TIDAK_HADIR' | 'TERLAMBAT' | 'IJIN' | 'SAKIT';
+  status: 'HADIR' | 'ALPHA' | 'TERLAMBAT' | 'IZIN' | 'SAKIT';
   notes?: string;
 }
 
@@ -42,17 +42,17 @@ interface MonthlyData {
 
 const statusColors = {
   HADIR: 'bg-green-100 text-green-800',
-  TIDAK_HADIR: 'bg-red-100 text-red-800',
+  ALPHA: 'bg-red-100 text-red-800',
   TERLAMBAT: 'bg-yellow-100 text-yellow-800',
-  IJIN: 'bg-blue-100 text-blue-800',
+  IZIN: 'bg-blue-100 text-blue-800',
   SAKIT: 'bg-purple-100 text-purple-800'
 };
 
 const statusIcons = {
   HADIR: CheckCircle,
-  TIDAK_HADIR: XCircle,
+  ALPHA: XCircle,
   TERLAMBAT: Clock,
-  IJIN: Calendar,
+  IZIN: Calendar,
   SAKIT: Clock
 };
 
@@ -125,18 +125,23 @@ export default function RekapKehadiran() {
   };
 
   const getStatistics = () => {
-    if (!monthlyData) return { total: 0, hadir: 0, tidakHadir: 0, terlambat: 0, ijin: 0, sakit: 0 };
+    if (!monthlyData) return { total: 0, hadir: 0, alpha: 0, terlambat: 0, ijin: 0, sakit: 0 };
 
     const stats = monthlyData.attendance.reduce((acc, record) => {
       acc.total++;
-      acc[record.status.toLowerCase() as keyof typeof acc]++;
+      const status = record.status.toLowerCase();
+      if (status === 'hadir') acc.hadir++;
+      else if (status === 'alpha') acc.alpha++;
+      else if (status === 'terlambat') acc.terlambat++;
+      else if (status === 'izin') acc.ijin++;
+      else if (status === 'sakit') acc.sakit++;
       return acc;
-    }, { total: 0, hadir: 0, tidakhadir: 0, terlambat: 0, ijin: 0, sakit: 0 });
+    }, { total: 0, hadir: 0, alpha: 0, terlambat: 0, ijin: 0, sakit: 0 });
 
     return {
       total: stats.total,
       hadir: stats.hadir,
-      tidakHadir: stats.tidakhadir,
+      alpha: stats.alpha,
       terlambat: stats.terlambat,
       ijin: stats.ijin,
       sakit: stats.sakit
@@ -243,8 +248,8 @@ export default function RekapKehadiran() {
             <div className="flex items-center space-x-2">
               <XCircle className="h-4 w-4 text-red-600" />
               <div>
-                <p className="text-sm text-gray-500">Tidak Hadir</p>
-                <p className="text-lg font-bold text-red-600">{stats.tidakHadir}</p>
+                <p className="text-sm text-gray-500">Alpa</p>
+                <p className="text-lg font-bold text-red-600">{stats.alpha}</p>
               </div>
             </div>
           </CardContent>
@@ -267,7 +272,7 @@ export default function RekapKehadiran() {
             <div className="flex items-center space-x-2">
               <Calendar className="h-4 w-4 text-blue-600" />
               <div>
-                <p className="text-sm text-gray-500">Ijin</p>
+                <p className="text-sm text-gray-500">Izin</p>
                 <p className="text-lg font-bold text-blue-600">{stats.ijin}</p>
               </div>
             </div>
@@ -302,9 +307,9 @@ export default function RekapKehadiran() {
             >
               <option value="ALL">Semua Status</option>
               <option value="HADIR">Hadir</option>
-              <option value="TIDAK_HADIR">Tidak Hadir</option>
+              <option value="ALPHA">Alpa</option>
               <option value="TERLAMBAT">Terlambat</option>
-              <option value="IJIN">Ijin</option>
+              <option value="IZIN">Izin</option>
               <option value="SAKIT">Sakit</option>
             </select>
           </div>
